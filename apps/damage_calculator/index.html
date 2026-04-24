@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>伤害计算器</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #fff;
+    --border: #e5e7eb;
+    --primary: #6366f1;
+    --danger: #ef4444;
+    --success: #10b981;
+    --text: #1f2937;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); margin: 0; padding: 10px; font-size: 13px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  h1 { font-size: 18px; margin: 0; }
+  .sub { color: var(--muted); font-size: 12px; }
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border);
+          border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .card h2 { font-size: 13px; margin: 0 0 8px; color: var(--primary); font-weight: 600; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+         gap: 8px; margin-bottom: 6px; }
+  .row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; gap: 2px; position: relative; }
+  .field label { font-size: 11px; color: var(--muted); }
+  .field input, .field select { padding: 5px 7px; border: 1px solid var(--border);
+                                 border-radius: 4px; font-size: 13px; background: white; }
+  .hint { font-size: 10px; color: var(--muted); line-height: 1.4; }
+  .checkbox-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; margin-top: 4px; }
+  .checkbox-row label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .warn { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 4px;
+          padding: 6px 8px; font-size: 11px; color: #78350f; margin: 4px 0; line-height: 1.5; }
+  .result { background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; padding: 14px; border-radius: 8px; margin-top: 10px; }
+  .result h2 { color: white; margin: 0 0 8px; font-size: 14px; }
+  .result .big { font-size: 32px; font-weight: bold; margin: 8px 0; }
+  .result .detail { font-size: 12px; opacity: 0.9; line-height: 1.6; }
+  .formula { font-size: 11px; opacity: 0.8; margin-top: 8px; font-family: monospace;
+             word-break: break-all; line-height: 1.4; }
+  .verdict { margin-top: 8px; padding: 8px 10px; border-radius: 4px; font-size: 14px;
+             background: rgba(255,255,255,0.15); }
+  .verdict.kill { background: rgba(16,185,129,0.4); }
+  .verdict.nokill { background: rgba(239,68,68,0.3); }
+  .info-box { padding: 6px 8px; background: #eef2ff; border-radius: 4px;
+              font-size: 12px; margin: 6px 0; line-height: 1.5; }
+  .suggest { position: absolute; top: 100%; left: 0; right: 0; background: white;
+             border: 1px solid var(--border); border-radius: 4px; margin-top: 2px;
+             max-height: 180px; overflow-y: auto; z-index: 10; display: none; font-size: 12px; }
+  .suggest div { padding: 5px 8px; cursor: pointer; }
+  .suggest div:hover, .suggest div.active { background: #eef2ff; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  .tab { background: none; border: none; padding: 6px 12px; font-size: 13px;
+         cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent;
+         margin-bottom: -1px; font-family: inherit; }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  footer { text-align: center; color: var(--muted); font-size: 10px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚔️ 伤害计算器</h1>
+    <div class="sub">直接输入游戏内"显示威力"即可 · 基于洛克计算器 2.0 公式</div>
+  </header>
+
+  <div class="layout">
+    <!-- 攻击方 -->
+    <div class="card">
+      <h2>⚔️ 攻击方</h2>
+      <div class="row">
+        <div class="field" style="grid-column: span 2;">
+          <label>精灵名称（可选，自动填入种族值）</label>
+          <input type="text" id="atkName" placeholder="如：岚鸟春天的样子" autocomplete="off">
+          <div class="suggest" id="atkSuggest"></div>
+        </div>
+      </div>
+      <div class="info-box" id="atkInfo" style="display:none"></div>
+      <div class="row">
+        <div class="field">
+          <label>物攻种族</label>
+          <input type="number" id="atkAtkBase" value="100" min="1" max="300">
+        </div>
+        <div class="field">
+          <label>魔攻种族</label>
+          <input type="number" id="atkSpaBase" value="100" min="1" max="300">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>物攻个体 (0-10)</label>
+          <input type="number" id="atkAtkIv" value="10" min="0" max="10">
+        </div>
+        <div class="field">
+          <label>魔攻个体 (0-10)</label>
+          <input type="number" id="atkSpaIv" value="10" min="0" max="10">
+        </div>
+        <div class="field">
+          <label>攻击性格</label>
+          <select id="atkAtkNature">
+            <option value="加">加（+20%）</option>
+            <option value="无" selected>无</option>
+            <option value="减">减（-10%）</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint">注：攻击 buff（攻防强化等）已包含在显示威力中，这里不用额外填</div>
+    </div>
+
+    <!-- 防御方 -->
+    <div class="card">
+      <h2>🛡️ 防御方</h2>
+      <div class="row">
+        <div class="field" style="grid-column: span 2;">
+          <label>精灵名称（可选）</label>
+          <input type="text" id="defName" placeholder="如：黑猫巫师" value="黑猫巫师" autocomplete="off">
+          <div class="suggest" id="defSuggest"></div>
+        </div>
+      </div>
+      <div class="info-box" id="defInfo" style="display:none"></div>
+      <div class="row">
+        <div class="field">
+          <label>HP 种族</label>
+          <input type="number" id="defHpBase" value="152" min="1" max="300">
+        </div>
+        <div class="field">
+          <label>物防种族</label>
+          <input type="number" id="defDefBase" value="67" min="1" max="300">
+        </div>
+        <div class="field">
+          <label>魔防种族</label>
+          <input type="number" id="defSpdBase" value="119" min="1" max="300">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>HP 个体</label>
+          <input type="number" id="defHpIv" value="10" min="0" max="10">
+        </div>
+        <div class="field">
+          <label>HP 性格</label>
+          <select id="defHpNature">
+            <option value="加">加HP</option>
+            <option value="无" selected>无</option>
+            <option value="减">减HP</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>防御个体</label>
+          <input type="number" id="defDefIv" value="0" min="0" max="10">
+        </div>
+        <div class="field">
+          <label>防御性格</label>
+          <select id="defDefNature">
+            <option value="加">加防</option>
+            <option value="无" selected>无</option>
+            <option value="减">减防</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>防御 buff (%)</label>
+          <input type="number" id="defDefBuff" value="0" step="10">
+        </div>
+        <div class="field">
+          <label>剩余血量 (%)</label>
+          <input type="number" id="defHpRemain" value="100" min="1" max="100">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 技能与隐藏乘区 -->
+  <div class="card">
+    <div class="tabs">
+      <button type="button" class="tab active" data-tab="power">按显示威力</button>
+      <button type="button" class="tab" data-tab="name">按技能名称</button>
+    </div>
+
+    <!-- Tab 1: 显示威力 -->
+    <div class="tab-panel active" id="tab-power">
+      <div class="row">
+        <div class="field">
+          <label>显示威力（游戏内看到的数字）</label>
+          <input type="number" id="shownPower" value="100" min="1">
+          <div class="warn">
+            ⚠️ 游戏显示威力已包含：本系加成（×1.25）、属性克制、攻击buff、静态特性、属性差加成（闪击/鸣沙陷阱等）。<br>
+            <b>请直接复制游戏内看到的"威力"数字，不要自行乘本系加成。</b>
+          </div>
+        </div>
+        <div class="field">
+          <label>技能类型</label>
+          <select id="skillCategory">
+            <option value="物攻">物攻</option>
+            <option value="魔攻">魔攻</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>连击数</label>
+          <input type="number" id="hitCount" value="1" min="1" max="10">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: 技能名称 -->
+    <div class="tab-panel" id="tab-name">
+      <div class="row">
+        <div class="field" style="grid-column: span 2;">
+          <label>技能名称（自动计算本系/克制/属性差）</label>
+          <input type="text" id="skillName" placeholder="如：闪击 / 鸣沙陷阱 / 一拳" autocomplete="off">
+          <div class="suggest" id="skillSuggest"></div>
+        </div>
+        <div class="field">
+          <label>技能连击数</label>
+          <input type="number" id="hitCountByName" value="1" min="1" max="10">
+        </div>
+      </div>
+      <div class="info-box" id="skillInfo" style="display:none"></div>
+      <div class="warn">
+        💡 属性差技能（闪击=速度差、鸣沙陷阱=防御差）会自动按阶梯表计算威力。<br>
+        其他静态特性加成（如独角兽目空+25%、挺起胸脯+50%）和 buff 暂不自动识别，可用下方"其他隐藏加成"字段补充。
+      </div>
+    </div>
+
+    <h2 style="margin-top:12px">🔮 隐藏乘区（不在显示威力中）</h2>
+    <div class="checkbox-row">
+      <label><input type="checkbox" id="fxTailwind">顺风 +50%（先手生效）</label>
+      <label><input type="checkbox" id="fxSkybreak">破空 +75%（先手生效）</label>
+      <label><input type="checkbox" id="fxWindMark">风起印记 +20%（先手生效）</label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div class="field">
+        <label>其他隐藏加成 (%)</label>
+        <input type="number" id="fxExtra" value="0" step="5">
+        <div class="hint">应对成功（愿力冲击+50%、偷袭等按技能说明）/ 其他未覆盖的乘区</div>
+      </div>
+      <div class="field">
+        <label>减伤系数 (%)</label>
+        <input type="number" id="defMitigation" value="0" step="10">
+        <div class="hint">防御应对/减伤特性</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="result" id="result"></div>
+  <footer>伤害 = CEIL(0.9 × 连击 × 显示威力 × 隐藏乘区 × 减伤 × 攻击 / 防御)</footer>
+</div>
+
+<script>
+const NATURE_MULT = { "加": 1.2, "无": 1.0, "减": 0.9 };
+let POKEMON = [], POKEMON_MAP = {};
+let SKILLS = [], SKILL_MAP = {};
+let currentTab = "power";  // "power" | "name"
+
+// 属性差阶梯威力（闪击/鸣沙陷阱）
+function statDiffPower(diff) {
+  if (diff < 0) return 60;
+  if (diff <= 14) return 100;
+  if (diff <= 29) return 130;
+  const table = [140, 150, 160, 170, 180, 190, 200];
+  return table[Math.min(Math.floor((diff - 30) / 15), table.length - 1)]
+       ?? 200;
+}
+
+// 属性差技能配置：键 -> 计算属性差的字段
+const STAT_DIFF_SKILLS = {
+  "闪击":     { field: "speed",   label: "速度差" },
+  "鸣沙陷阱": { field: "defense", label: "防御差" },
+};
+
+// 18属性克制表（攻击方 -> 防御方 倍率）
+const TYPE_CHART = {
+  "普通":{"地":0.5,"幽":0.5,"机械":0.5},
+  "草":{"火":0.5,"水":2,"光":2,"地":2,"龙":0.5,"毒":0.5,"虫":0.5,"翼":0.5,"机械":0.5},
+  "火":{"草":2,"水":0.5,"地":0.5,"冰":2,"龙":0.5,"虫":2,"机械":2},
+  "水":{"草":0.5,"火":2,"地":2,"冰":0.5,"龙":0.5,"机械":2},
+  "光":{"草":0.5,"冰":0.5,"幽":2,"恶":2},
+  "地":{"草":0.5,"火":2,"冰":2,"电":2,"毒":2,"武":0.5},
+  "冰":{"草":2,"火":0.5,"地":2,"龙":2,"翼":2,"机械":0.5},
+  "龙":{"龙":2,"机械":0.5},
+  "电":{"草":0.5,"水":2,"地":0.5,"龙":0.5,"电":0.5,"翼":2},
+  "毒":{"草":2,"地":0.5,"毒":0.5,"萌":2,"机械":0.5},
+  "虫":{"草":2,"火":0.5,"毒":0.5,"武":0.5,"翼":0.5,"萌":0.5,"幽":0.5,"恶":2,"机械":0.5,"幻":2},
+  "武":{"普通":2,"地":2,"冰":2,"毒":0.5,"虫":0.5,"翼":0.5,"萌":0.5,"幽":0.5,"恶":2,"机械":2,"幻":0.5},
+  "翼":{"草":2,"地":0.5,"龙":0.5,"电":0.5,"虫":2,"武":2,"机械":0.5},
+  "萌":{"火":0.5,"龙":2,"毒":0.5,"武":2,"恶":2,"机械":0.5},
+  "幽":{"普通":0.5,"光":2,"幽":2,"恶":0.5,"幻":2},
+  "恶":{"光":0.5,"毒":2,"武":0.5,"萌":2,"幽":2,"恶":0.5},
+  "机械":{"火":0.5,"水":0.5,"地":2,"冰":2,"电":0.5,"萌":2,"机械":0.5},
+  "幻":{"光":0.5,"毒":2,"武":2,"机械":0.5,"幻":0.5}
+};
+
+function getTypeMult(atkType, defAttrs) {
+  const mults = defAttrs.map(a => TYPE_CHART[atkType]?.[a] ?? 1);
+  if (mults.some(m => m === 0)) return 0;
+  if (mults.length === 1) return mults[0];
+  const eff = mults.filter(m => m > 1).length;
+  const res = mults.filter(m => m < 1).length;
+  if (eff === 2) return 3;
+  if (res === 2) return 1/3;
+  if (eff === 1 && res === 1) return 1;
+  if (eff === 1) return 2;
+  if (res === 1) return 0.5;
+  return 1;
+}
+
+function calcStat(base, iv, nature) {
+  return Math.round((Math.round(1.1 * (base + 3 * iv)) + 10) * NATURE_MULT[nature]) + 50;
+}
+function calcHp(base, iv, nature) {
+  return Math.round((Math.round(1.7 * (base + 3 * iv)) + 70) * NATURE_MULT[nature]) + 100;
+}
+
+function compute() {
+  // 攻击方基础
+  const atkAtkBase = parseInt(document.getElementById("atkAtkBase").value) || 100;
+  const atkSpaBase = parseInt(document.getElementById("atkSpaBase").value) || 100;
+  const atkAtkIv = parseInt(document.getElementById("atkAtkIv").value) || 0;
+  const atkSpaIv = parseInt(document.getElementById("atkSpaIv").value) || 0;
+  const atkNature = document.getElementById("atkAtkNature").value;
+
+  // 防御方基础
+  const defHpBase = parseInt(document.getElementById("defHpBase").value) || 100;
+  const defDefBase = parseInt(document.getElementById("defDefBase").value) || 100;
+  const defSpdBase = parseInt(document.getElementById("defSpdBase").value) || 100;
+  const defHpIv = parseInt(document.getElementById("defHpIv").value) || 0;
+  const defHpNature = document.getElementById("defHpNature").value;
+  const defDefIv = parseInt(document.getElementById("defDefIv").value) || 0;
+  const defDefNature = document.getElementById("defDefNature").value;
+  const defDefBuff = 1 + parseFloat(document.getElementById("defDefBuff").value || 0) / 100;
+  const mitigation = 1 - parseFloat(document.getElementById("defMitigation").value || 0) / 100;
+  const hpRemainPct = parseFloat(document.getElementById("defHpRemain").value || 100) / 100;
+  const defAttrs = POKEMON_MAP[document.getElementById("defName").value.trim()]?.attrs;
+  const atkAttrs = POKEMON_MAP[document.getElementById("atkName").value.trim()]?.attrs;
+
+  // 按 tab 决定威力与技能类型
+  let category, shownPower, hitCount, skillTraceLine = "";
+
+  if (currentTab === "power") {
+    category = document.getElementById("skillCategory").value;
+    shownPower = parseFloat(document.getElementById("shownPower").value) || 0;
+    hitCount = parseInt(document.getElementById("hitCount").value) || 1;
+  } else {
+    // 技能名称模式
+    const name = document.getElementById("skillName").value.trim();
+    const skill = SKILL_MAP[name];
+    const info = document.getElementById("skillInfo");
+    if (!skill) {
+      info.style.display = "block";
+      info.innerHTML = name ? `⚠️ 未找到技能：${name}` : "请输入技能名";
+      document.getElementById("result").innerHTML = `<h2>请先输入有效技能名</h2>`;
+      return;
+    }
+    category = skill.category;
+    hitCount = parseInt(document.getElementById("hitCountByName").value) || 1;
+
+    // 基础威力（属性差技能特殊处理）
+    let basePower = parseInt(skill.power) || 0;
+    let baseTrace = `${basePower}`;
+    const diffCfg = STAT_DIFF_SKILLS[skill.name];
+    if (diffCfg && defAttrs) {
+      // 取攻防双方对应属性
+      const atkSide = diffCfg.field === "speed" ? atkSpaBase : atkAtkBase;  // 闪击是物攻类，但按速度
+      // 实际要按字段取，且属性差是"攻击方该项能力 - 防御方该项能力"
+      const atkStatVal = calcStat(getFieldBase("atk", diffCfg.field),
+                                   getFieldIv("atk", diffCfg.field),
+                                   getFieldNature("atk", diffCfg.field));
+      const defStatVal = calcStat(getFieldBase("def", diffCfg.field),
+                                   getFieldIv("def", diffCfg.field),
+                                   getFieldNature("def", diffCfg.field));
+      const diff = atkStatVal - defStatVal;
+      basePower = statDiffPower(diff);
+      baseTrace = `${diffCfg.label} ${diff} → 阶梯 ${basePower}`;
+    }
+
+    // 本系
+    const isStab = atkAttrs?.includes(skill.attribute);
+    const stab = isStab ? 1.25 : 1.0;
+    // 克制
+    const typeMult = defAttrs ? getTypeMult(skill.attribute, defAttrs) : 1;
+
+    shownPower = basePower * stab * typeMult;
+
+    const info2 = document.getElementById("skillInfo");
+    info2.style.display = "block";
+    info2.innerHTML =
+      `<b>${skill.name}</b> [${skill.attribute}] ${skill.category} · 基础威力 ${baseTrace}` +
+      `　本系 ${isStab ? "×1.25" : "×1"}　克制 ×${typeMult.toFixed(2)}` +
+      `　<b>显示威力 ${shownPower.toFixed(1)}</b>`;
+    skillTraceLine = `${skill.name}[${skill.attribute}]`;
+  }
+
+  const atkBase = category === "物攻" ? atkAtkBase : atkSpaBase;
+  const atkIv = category === "物攻" ? atkAtkIv : atkSpaIv;
+  const atkStat = calcStat(atkBase, atkIv, atkNature);
+
+  // 隐藏乘区
+  let hiddenMult = 1.0;
+  const fxNotes = [];
+  if (document.getElementById("fxTailwind").checked)   { hiddenMult *= 1.5;  fxNotes.push("顺风×1.5"); }
+  if (document.getElementById("fxSkybreak").checked)   { hiddenMult *= 1.75; fxNotes.push("破空×1.75"); }
+  if (document.getElementById("fxWindMark").checked)   { hiddenMult *= 1.2;  fxNotes.push("风起印记×1.2"); }
+  const fxExtra = parseFloat(document.getElementById("fxExtra").value || 0) / 100;
+  if (fxExtra !== 0) { hiddenMult *= (1 + fxExtra); fxNotes.push(`其他${fxExtra>0?"+":""}${(fxExtra*100).toFixed(0)}%`); }
+
+  const defBase = category === "物攻" ? defDefBase : defSpdBase;
+  const defStat = Math.round(calcStat(defBase, defDefIv, defDefNature) * defDefBuff);
+  const hpMax = calcHp(defHpBase, defHpIv, defHpNature);
+  const hpCur = Math.max(1, Math.round(hpMax * hpRemainPct));
+
+  const effPower = shownPower * hiddenMult;
+  const damage = Math.ceil(0.9 * hitCount * effPower * mitigation * atkStat / defStat);
+  const pct = (100 * damage / hpCur).toFixed(1);
+  const killTurn = damage >= hpCur ? 1 : Math.ceil(hpCur / damage);
+
+  const hpLine = hpRemainPct < 1
+    ? `HP ${hpCur}/${hpMax}（剩余${(hpRemainPct*100).toFixed(0)}%）`
+    : `HP ${hpMax}`;
+
+  const verdict = damage >= hpCur
+    ? `<div class="verdict kill">✅ 一击秒杀（溢出 ${damage - hpCur} 血）</div>`
+    : `<div class="verdict nokill">❌ 未秒杀，剩余 ${hpCur - damage} 血，需要 ${killTurn} 次</div>`;
+
+  if (currentTab === "name") {
+    document.getElementById("result").innerHTML = `
+      <h2>📊 ${skillTraceLine}</h2>
+      <div class="big">${damage} 伤害 (${pct}%)</div>
+      ${verdict}
+    `;
+  } else {
+    const defType = category === "物攻" ? "物防" : "魔防";
+    const fxDisplay = fxNotes.length ? `　隐藏乘区: ${fxNotes.join(" · ")}` : "";
+    document.getElementById("result").innerHTML = `
+      <h2>📊 计算结果</h2>
+      <div class="detail">
+        攻击方 ${category} ${atkStat}　防御方 ${defType} ${defStat}　${hpLine}<br>
+        显示威力 ${shownPower}　连击 ${hitCount}${fxDisplay}<br>
+        有效威力 ${effPower.toFixed(1)}（显示威力 × 隐藏乘区 ${hiddenMult.toFixed(3)}）
+      </div>
+      <div class="big">${damage} 伤害 (${pct}%)</div>
+      ${verdict}
+      <div class="formula">CEIL(0.9 × ${hitCount} × ${effPower.toFixed(1)} × ${mitigation.toFixed(2)} × ${atkStat} / ${defStat})</div>
+    `;
+  }
+}
+
+// 属性字段取值辅助（speed / defense / attack / special_defense 等）
+function getFieldBase(side, field) {
+  if (side === "atk") {
+    if (field === "attack") return parseInt(document.getElementById("atkAtkBase").value) || 100;
+    if (field === "special_attack") return parseInt(document.getElementById("atkSpaBase").value) || 100;
+    if (field === "speed") {
+      const p = POKEMON_MAP[document.getElementById("atkName").value.trim()];
+      return p ? p.speed : 100;
+    }
+  } else {
+    if (field === "defense") return parseInt(document.getElementById("defDefBase").value) || 100;
+    if (field === "special_defense") return parseInt(document.getElementById("defSpdBase").value) || 100;
+    if (field === "speed") {
+      const p = POKEMON_MAP[document.getElementById("defName").value.trim()];
+      return p ? p.speed : 100;
+    }
+  }
+  return 100;
+}
+function getFieldIv(side, field) {
+  // 默认满个体（无单独输入框的字段）
+  if (side === "atk" && field === "attack") return parseInt(document.getElementById("atkAtkIv").value) || 0;
+  if (side === "atk" && field === "special_attack") return parseInt(document.getElementById("atkSpaIv").value) || 0;
+  if (side === "def" && field === "defense") return parseInt(document.getElementById("defDefIv").value) || 0;
+  return 10;  // 速度等默认满个体
+}
+function getFieldNature(side, field) {
+  if (side === "atk" && (field === "attack" || field === "special_attack"))
+    return document.getElementById("atkAtkNature").value;
+  if (side === "def" && field === "defense")
+    return document.getElementById("defDefNature").value;
+  return "无";
+}
+
+// 自动补全
+function setupAutocomplete(inputId, suggestId, getItems, onSelect) {
+  const input = document.getElementById(inputId);
+  const box = document.getElementById(suggestId);
+  let idx = -1;
+  input.addEventListener("input", () => {
+    idx = -1;
+    const kw = input.value.trim();
+    if (!kw) { box.style.display = "none"; return; }
+    const matches = getItems(kw).slice(0, 12);
+    if (!matches.length) { box.style.display = "none"; return; }
+    box.innerHTML = matches.map((m, i) => `<div data-idx="${i}">${m.label}</div>`).join("");
+    box._matches = matches;
+    box.style.display = "block";
+  });
+  input.addEventListener("keydown", e => {
+    const items = box.querySelectorAll("div");
+    if (e.key === "ArrowDown") { e.preventDefault(); idx = Math.min(idx+1, items.length-1); items.forEach((el,i) => el.classList.toggle("active", i===idx)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); idx = Math.max(idx-1, 0); items.forEach((el,i) => el.classList.toggle("active", i===idx)); }
+    else if (e.key === "Enter" && idx >= 0) { e.preventDefault(); onSelect(box._matches[idx]); box.style.display = "none"; }
+    else if (e.key === "Escape") box.style.display = "none";
+  });
+  box.addEventListener("click", e => {
+    const t = e.target.closest("div[data-idx]");
+    if (t) { onSelect(box._matches[parseInt(t.dataset.idx)]); box.style.display = "none"; }
+  });
+  document.addEventListener("click", e => {
+    if (!e.target.closest(`#${inputId}, #${suggestId}`)) box.style.display = "none";
+  });
+}
+
+function fillAttacker(p) {
+  document.getElementById("atkAtkBase").value = p.attack;
+  document.getElementById("atkSpaBase").value = p.special_attack;
+  const info = document.getElementById("atkInfo");
+  info.style.display = "block";
+  info.innerHTML = `<b>${p.name}</b> [${p.attrs.join("/")}]　物攻 ${p.attack}　魔攻 ${p.special_attack}　速度 ${p.speed}`;
+  compute();
+}
+function fillDefender(p) {
+  document.getElementById("defHpBase").value = p.hp;
+  document.getElementById("defDefBase").value = p.defense;
+  document.getElementById("defSpdBase").value = p.special_defense;
+  const info = document.getElementById("defInfo");
+  info.style.display = "block";
+  info.innerHTML = `<b>${p.name}</b> [${p.attrs.join("/")}]　HP ${p.hp}　物防 ${p.defense}　魔防 ${p.special_defense}`;
+  compute();
+}
+
+async function loadData() {
+  document.getElementById("result").innerHTML = `<h2>⏳ 加载数据...</h2>`;
+  try {
+    const [pmRes, skRes] = await Promise.all([
+      fetch("../../data/raw/pokemon.json"),
+      fetch("../../data/raw/skills.json"),
+    ]);
+    if (!pmRes.ok || !skRes.ok) throw new Error(`HTTP error`);
+    const raw = await pmRes.json();
+    const skRaw = await skRes.json();
+    POKEMON = raw.map(p => ({
+      name: p.display_name,
+      attrs: p.attributes_list,
+      hp: parseInt(p.stats.hp),
+      attack: parseInt(p.stats.attack),
+      special_attack: parseInt(p.stats.special_attack),
+      defense: parseInt(p.stats.defense),
+      special_defense: parseInt(p.stats.special_defense),
+      speed: parseInt(p.stats.speed),
+    }));
+    POKEMON_MAP = Object.fromEntries(POKEMON.map(p => [p.name, p]));
+
+    // 只保留攻击类技能
+    SKILLS = skRaw.filter(s => s.category === "物攻" || s.category === "魔攻");
+    SKILL_MAP = Object.fromEntries(SKILLS.map(s => [s.name, s]));
+
+    setupAutocomplete("atkName", "atkSuggest",
+      kw => POKEMON.filter(p => p.name.includes(kw)).map(p => ({ label: `${p.name} [${p.attrs.join("/")}]`, data: p })),
+      item => { document.getElementById("atkName").value = item.data.name; fillAttacker(item.data); }
+    );
+    setupAutocomplete("defName", "defSuggest",
+      kw => POKEMON.filter(p => p.name.includes(kw)).map(p => ({ label: `${p.name} [${p.attrs.join("/")}]`, data: p })),
+      item => { document.getElementById("defName").value = item.data.name; fillDefender(item.data); }
+    );
+    setupAutocomplete("skillName", "skillSuggest",
+      kw => SKILLS.filter(s => s.name.includes(kw)).map(s => ({
+        label: `${s.name} [${s.attribute}] ${s.category} 威力${s.power}`,
+        data: s,
+      })),
+      item => { document.getElementById("skillName").value = item.data.name; compute(); }
+    );
+
+    // Tab 切换
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        currentTab = target;
+        document.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+        document.querySelectorAll(".tab-panel").forEach(p =>
+          p.classList.toggle("active", p.id === `tab-${target}`)
+        );
+        compute();
+      });
+    });
+
+    const def = POKEMON_MAP["黑猫巫师"];
+    if (def) fillDefender(def);
+
+    document.querySelectorAll("input:not([type=text]), select").forEach(el => {
+      el.addEventListener("input", compute);
+      el.addEventListener("change", compute);
+    });
+
+    compute();
+  } catch (e) {
+    document.getElementById("result").innerHTML = `
+      <h2>⚠️ 加载失败: ${e.message}</h2>
+      <div class="detail">需要通过 HTTP 服务访问：<br>
+      在项目根目录运行 <code>./apps/serve.sh</code><br>
+      然后打开 http://localhost:8000/apps/damage_calculator/</div>`;
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>

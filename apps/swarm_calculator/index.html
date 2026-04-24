@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虫群斩杀计算器</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --primary: #6366f1;
+    --danger: #ef4444;
+    --success: #10b981;
+    --text: #1f2937;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); margin: 0; padding: 10px; font-size: 13px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  h1 { font-size: 18px; margin: 0; }
+  .sub { color: var(--muted); font-size: 12px; }
+  .layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+  @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border);
+          border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .card h2 { font-size: 13px; margin: 0 0 8px; color: var(--primary); font-weight: 600; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+         gap: 8px; margin-bottom: 6px; }
+  .row:last-child { margin-bottom: 0; }
+  .field { display: flex; flex-direction: column; gap: 2px; position: relative; }
+  .field label { font-size: 11px; color: var(--muted); }
+  .field input, .field select { padding: 5px 7px; border: 1px solid var(--border);
+                                 border-radius: 4px; font-size: 13px; background: white;
+                                 font-family: inherit; }
+  .hint { font-size: 10px; color: var(--muted); line-height: 1.3; }
+  .result { background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; padding: 14px; border-radius: 8px; position: sticky; top: 10px; }
+  .result h2 { color: white; margin: 0 0 8px; font-size: 14px; }
+  .result .stats-line { font-size: 12px; opacity: 0.9; line-height: 1.6; }
+  .result .big { font-size: 28px; font-weight: bold; margin: 8px 0 4px; }
+  .verdict { font-size: 14px; margin-top: 8px; padding: 8px 10px; border-radius: 4px;
+             background: rgba(255,255,255,0.15); }
+  .verdict.kill { background: rgba(16, 185, 129, 0.4); }
+  .verdict.nokill { background: rgba(239, 68, 68, 0.4); }
+  .formula { font-size: 11px; opacity: 0.8; margin-top: 8px; font-family: monospace;
+             word-break: break-all; line-height: 1.4; }
+  .info-box { padding: 6px 8px; background: #eef2ff; border-radius: 4px;
+              font-size: 12px; margin: 6px 0; line-height: 1.5; }
+  .info-box.error { background: #fee; color: var(--danger); }
+  footer { text-align: center; color: var(--muted); font-size: 10px; margin-top: 10px; }
+  .suggest { position: absolute; top: 100%; left: 0; right: 0; background: white;
+             border: 1px solid var(--border); border-radius: 4px; margin-top: 2px;
+             max-height: 180px; overflow-y: auto; z-index: 10; display: none; font-size: 12px; }
+  .suggest div { padding: 5px 8px; cursor: pointer; }
+  .suggest div:hover, .suggest div.active { background: #eef2ff; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🐛 虫群斩杀计算器</h1>
+    <div class="sub">洛克计算器 2.0 公式 · 虫群：虫系物攻 威力20</div>
+  </header>
+
+  <div class="layout">
+    <div class="inputs">
+      <!-- 第一部分：攻击方 -->
+      <div class="card">
+        <h2>① 攻击方</h2>
+        <div class="row">
+          <div class="field">
+            <label>释放虫群的精灵</label>
+            <select id="attacker">
+              <option value="hua">花衣蝶</option>
+              <option value="yun" selected>陨星虫</option>
+              <option value="huakui">花魁蜂后（6虫队）</option>
+              <option value="queen">女王蜂（6虫队）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>攻击性格</label>
+            <select id="atkNature">
+              <option value="加">加攻（+20%）</option>
+              <option value="无" selected>无</option>
+            </select>
+          </div>
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:14px;">
+              <input type="checkbox" id="atkIvFull" checked>
+              攻击个体值（满10）
+            </label>
+          </div>
+          <div class="field">
+            <label>物攻 buff (%)</label>
+            <input type="number" id="atkBuffPct" value="0" step="10">
+            <div class="hint">攻防强化等</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第二部分：奉献与加成 -->
+      <div class="card">
+        <h2>② 奉献与加成</h2>
+        <div class="row">
+          <div class="field">
+            <label>威力+20（次数）</label>
+            <input type="number" id="bonusPower" min="0" max="20" value="0">
+          </div>
+          <div class="field">
+            <label>连击+1（次数）</label>
+            <input type="number" id="bonusHit" min="0" max="20" value="0">
+          </div>
+          <div class="field">
+            <label>中毒层数+2（次数）</label>
+            <input type="number" id="bonusPoison" min="0" max="20" value="0">
+          </div>
+          <div class="field">
+            <label>其他威力加成 (%)</label>
+            <input type="number" id="extraPowerPct" value="0" step="5">
+            <div class="hint">攻击印记+10%/蓄势+30%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第三部分：防御方 -->
+      <div class="card">
+        <h2>③ 防御方</h2>
+        <div class="row">
+          <div class="field">
+            <label>精灵名称（输入自动匹配）</label>
+            <input type="text" id="defenderName" placeholder="如：黑猫巫师" value="黑猫巫师" autocomplete="off">
+            <div class="suggest" id="suggest"></div>
+          </div>
+          <div class="field">
+            <label>剩余血量 (%)</label>
+            <input type="number" id="hpRemain" min="1" max="100" value="100">
+            <div class="hint">默认100%满血</div>
+          </div>
+        </div>
+        <div class="info-box" id="defenderInfo"></div>
+        <div class="row">
+          <div class="field">
+            <label>HP 个体</label>
+            <input type="number" id="hpIv" min="0" max="10" value="10">
+          </div>
+          <div class="field">
+            <label>HP 性格</label>
+            <select id="hpNature">
+              <option value="加">加HP</option>
+              <option value="无" selected>无</option>
+              <option value="减">减HP</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>物防 个体</label>
+            <input type="number" id="defIv" min="0" max="10" value="10">
+          </div>
+          <div class="field">
+            <label>物防 性格</label>
+            <select id="defNature">
+              <option value="加">加物防</option>
+              <option value="无" selected>无</option>
+              <option value="减">减物防</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>物防 buff (%)</label>
+            <input type="number" id="defBuffPct" value="0" step="10">
+          </div>
+          <div class="field">
+            <label>减伤系数 (%)</label>
+            <input type="number" id="mitigationPct" value="0" step="10">
+            <div class="hint">防御应对/减伤特性</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结果 -->
+    <div class="result" id="result"></div>
+  </div>
+
+  <footer>基于《洛克计算器 2.0》公式 · 虫群受奉献影响</footer>
+</div>
+
+<script>
+// 虫系攻击各属性倍率
+const BUG_TYPE_MULT = {
+  "普通": 1.0, "草": 2.0, "火": 0.5, "水": 1.0, "光": 1.0, "地": 1.0,
+  "冰": 1.0, "龙": 1.0, "电": 1.0, "毒": 0.5, "虫": 1.0, "武": 0.5,
+  "翼": 0.5, "萌": 0.5, "幽": 0.5, "恶": 2.0, "机械": 0.5, "幻": 2.0
+};
+
+// 精灵数据（运行时从 data/raw/pokemon.json 加载）
+let POKEMON = [];
+let POKEMON_MAP = {};
+
+const ATTACKERS = {
+  hua:    { name: "花衣蝶",   atkBase: 67, attrs: ["草", "虫"], innate: 1.0,  innateDesc: "" },
+  yun:    { name: "陨星虫",   atkBase: 78, attrs: ["虫"],       innate: 1.0,  innateDesc: "" },
+  huakui: { name: "花魁蜂后", atkBase: 54, attrs: ["翼", "虫"], innate: 1.5,  innateDesc: "虫群鼓舞(5虫)+50%" },
+  queen:  { name: "女王蜂",   atkBase: 50, attrs: ["翼", "虫"], innate: 1.75, innateDesc: "虫群突袭(5虫)+75%" },
+};
+const NATURE_MULT = { "加": 1.2, "无": 1.0, "减": 0.9 };
+
+function calcStat(base, iv, nature) {
+  const inner = Math.round(1.1 * (base + 3 * iv)) + 10;
+  return Math.round(inner * NATURE_MULT[nature]) + 50;
+}
+function calcHp(base, iv, nature) {
+  const inner = Math.round(1.7 * (base + 3 * iv)) + 70;
+  return Math.round(inner * NATURE_MULT[nature]) + 100;
+}
+
+// PVP 属性克制倍率：双克=3x，双抗=1/3x，一克一抗=1，单克=2，单抗=0.5
+function typeEffectiveness(attrs) {
+  const mults = attrs.map(a => BUG_TYPE_MULT[a]);
+  if (mults.some(m => m === 0)) return 0;
+  if (mults.length === 1) return mults[0];
+  const eff = mults.filter(m => m > 1).length;
+  const resist = mults.filter(m => m < 1).length;
+  if (eff === 2) return 3.0;
+  if (resist === 2) return 1/3;
+  if (eff === 1 && resist === 1) return 1.0;
+  if (eff === 1) return 2.0;
+  if (resist === 1) return 0.5;
+  return 1.0;
+}
+
+function typeLabel(mult) {
+  if (mult >= 3) return `${mult.toFixed(2)}x 双克 ⚡`;
+  if (mult === 2) return "2x 单克";
+  if (mult === 1) return "1x 中性";
+  if (mult === 0.5) return "0.5x 单抗";
+  if (Math.abs(mult - 1/3) < 0.01) return "1/3x 双抗 🛡️";
+  return mult.toFixed(2) + "x";
+}
+
+function compute() {
+  const aKey = document.getElementById("attacker").value;
+  const a = ATTACKERS[aKey];
+  const atkNature = document.getElementById("atkNature").value;
+  const atkIv = document.getElementById("atkIvFull").checked ? 10 : 0;
+  const atkBuff = 1 + parseFloat(document.getElementById("atkBuffPct").value || 0) / 100;
+  // innate = 女王蜂虫群突袭 75% 加成等
+  const atkStat = Math.round(calcStat(a.atkBase, atkIv, atkNature) * a.innate * atkBuff);
+
+  const bonusPower = parseInt(document.getElementById("bonusPower").value || 0);
+  const bonusHit = parseInt(document.getElementById("bonusHit").value || 0);
+  const bonusPoison = parseInt(document.getElementById("bonusPoison").value || 0);
+  const extraPct = parseFloat(document.getElementById("extraPowerPct").value || 0) / 100;
+
+  const basePower = 20 + bonusPower * 20;
+  const hitCount = 1 + bonusHit;
+
+  // 本系加成：攻击方是否含虫系（3只都是）
+  const stab = a.attrs.includes("虫") ? 1.25 : 1.0;
+
+  // 防御方
+  const defName = document.getElementById("defenderName").value.trim();
+  const defender = POKEMON_MAP[defName];
+  const infoBox = document.getElementById("defenderInfo");
+
+  if (!defender) {
+    infoBox.className = "info-box error";
+    infoBox.textContent = `⚠️ 未找到精灵 "${defName}"`;
+    document.getElementById("result").innerHTML = "";
+    return;
+  }
+
+  const typeMult = typeEffectiveness(defender.attrs);
+  infoBox.className = "info-box";
+  infoBox.innerHTML =
+    `<b>${defender.name}</b> [${defender.attrs.join("/")}]` +
+    `　HP种族 ${defender.hp}　物防种族 ${defender.defense}` +
+    `　<b>克制 ${typeLabel(typeMult)}</b>`;
+
+  const hpIv = parseInt(document.getElementById("hpIv").value);
+  const hpNature = document.getElementById("hpNature").value;
+  const defIv = parseInt(document.getElementById("defIv").value);
+  const defNature = document.getElementById("defNature").value;
+  const defBuff = 1 + parseFloat(document.getElementById("defBuffPct").value || 0) / 100;
+  const mitigation = 1 - parseFloat(document.getElementById("mitigationPct").value || 0) / 100;
+  const hpRemainPct = parseFloat(document.getElementById("hpRemain").value || 100) / 100;
+
+  const hpMax = calcHp(defender.hp, hpIv, hpNature);
+  const hpCur = Math.max(1, Math.round(hpMax * hpRemainPct));
+  const defStat = Math.round(calcStat(defender.defense, defIv, defNature) * defBuff);
+
+  const effectivePower = basePower * stab * typeMult * (1 + extraPct);
+  const damage = Math.ceil(0.9 * hitCount * effectivePower * mitigation * atkStat / defStat);
+
+  // 中毒：每层3%最大HP
+  const poisonLayers = bonusPoison * 2;
+  const poisonPerTurn = Math.floor(hpMax * 0.03) * poisonLayers;
+
+  const pct = (100 * damage / hpCur).toFixed(1);
+  const killTurn = damage >= hpCur ? 1 : Math.ceil(hpCur / damage);
+  const afterDmg = hpCur - damage;  // 虫群结算后剩余血量（可能为负）
+
+  // 判定
+  const instantKill = damage >= hpCur;
+  // 回合末毒死：虫群未秒杀 + 有中毒层 + 中毒伤害 ≥ 剩余血
+  const poisonFinish = !instantKill && poisonLayers > 0 && poisonPerTurn >= afterDmg;
+
+  let verdictHtml = "";
+  if (instantKill) {
+    verdictHtml = `<div class="verdict kill">✅ 当场秒杀（溢出 ${damage - hpCur} 血）</div>`;
+  } else if (poisonFinish) {
+    verdictHtml =
+      `<div class="verdict nokill">⚠️ 虫群未秒杀，剩余 ${afterDmg} 血</div>` +
+      `<div class="verdict kill">☠️ 回合末毒死（中毒 ${poisonPerTurn} ≥ 剩余 ${afterDmg}）</div>`;
+  } else {
+    verdictHtml = `<div class="verdict nokill">❌ 未秒杀，剩余 ${afterDmg} 血　需要 ${killTurn} 次虫群（不计中毒）</div>`;
+    if (poisonLayers > 0) {
+      verdictHtml += `<div class="verdict nokill">☠️ 中毒 ${poisonPerTurn} < 剩余 ${afterDmg}，回合末无法毒死</div>`;
+    }
+  }
+
+  const hpLine = hpRemainPct < 1
+    ? `HP ${hpCur} / ${hpMax}（剩余 ${(hpRemainPct * 100).toFixed(0)}%）`
+    : `HP ${hpMax}`;
+
+  const innateNote = a.innateDesc ? `（${a.innateDesc}）` : "";
+
+  document.getElementById("result").innerHTML = `
+    <h2>📊 计算结果</h2>
+    <div class="stats-line">
+      攻击方：${a.name}　物攻 ${atkStat}${innateNote}<br>
+      防御方：${defender.name}　${hpLine}　物防 ${defStat}<br>
+      克制 ${typeLabel(typeMult)}　本系 ×${stab}　威力 ${basePower}　连击 ${hitCount}<br>
+      有效威力 ${effectivePower.toFixed(1)}
+    </div>
+    <div class="big">${damage} 伤害 (${pct}%)</div>
+    ${verdictHtml}
+    ${poisonLayers > 0 ? `<div class="stats-line" style="margin-top:6px">💀 中毒 ${poisonLayers} 层，回合末 ${poisonPerTurn} 伤害</div>` : ""}
+    <div class="formula">
+      CEIL(0.9 × ${hitCount} × ${effectivePower.toFixed(1)} × ${mitigation.toFixed(2)} × ${atkStat} / ${defStat})
+    </div>
+  `;
+}
+
+// 自动补全
+const nameInput = document.getElementById("defenderName");
+const suggestBox = document.getElementById("suggest");
+let activeIdx = -1;
+
+function renderSuggestions(keyword) {
+  if (!keyword) { suggestBox.style.display = "none"; return; }
+  const matches = POKEMON
+    .filter(p => p.name.includes(keyword))
+    .slice(0, 15);
+  if (matches.length === 0) { suggestBox.style.display = "none"; return; }
+  suggestBox.innerHTML = matches.map((p, i) =>
+    `<div data-name="${p.name}" class="${i === activeIdx ? 'active' : ''}">${p.name} [${p.attrs.join("/")}]</div>`
+  ).join("");
+  suggestBox.style.display = "block";
+}
+
+nameInput.addEventListener("input", () => {
+  activeIdx = -1;
+  renderSuggestions(nameInput.value.trim());
+  compute();
+});
+nameInput.addEventListener("keydown", (e) => {
+  const items = suggestBox.querySelectorAll("div");
+  if (e.key === "ArrowDown") { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); renderSuggestions(nameInput.value.trim()); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); renderSuggestions(nameInput.value.trim()); }
+  else if (e.key === "Enter" && activeIdx >= 0) { e.preventDefault(); nameInput.value = items[activeIdx].dataset.name; suggestBox.style.display = "none"; compute(); }
+  else if (e.key === "Escape") { suggestBox.style.display = "none"; }
+});
+suggestBox.addEventListener("click", (e) => {
+  const target = e.target.closest("div[data-name]");
+  if (target) { nameInput.value = target.dataset.name; suggestBox.style.display = "none"; compute(); }
+});
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".field")) suggestBox.style.display = "none";
+});
+
+document.querySelectorAll("input, select").forEach(el => {
+  if (el.id !== "defenderName") {
+    el.addEventListener("input", compute);
+    el.addEventListener("change", compute);
+  }
+});
+
+// 启动：加载精灵数据
+async function loadData() {
+  const resultEl = document.getElementById("result");
+  resultEl.innerHTML = `<h2>⏳ 加载精灵数据...</h2>`;
+  try {
+    const res = await fetch("../../data/raw/pokemon.json");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const raw = await res.json();
+    // 精简为计算所需字段
+    POKEMON = raw.map(p => ({
+      name: p.display_name,
+      attrs: p.attributes_list,
+      hp: parseInt(p.stats.hp),
+      defense: parseInt(p.stats.defense),
+      special_defense: parseInt(p.stats.special_defense),
+    }));
+    POKEMON_MAP = Object.fromEntries(POKEMON.map(p => [p.name, p]));
+    compute();
+  } catch (e) {
+    resultEl.innerHTML = `
+      <h2>⚠️ 加载失败</h2>
+      <div class="stats-line">
+        错误: ${e.message}<br><br>
+        此工具需要通过 HTTP 服务访问，不能直接双击 index.html 打开（浏览器安全限制）。<br><br>
+        <b>本地调试：</b><br>
+        在项目根目录运行：<br>
+        <code style="background:rgba(0,0,0,0.2);padding:2px 6px;border-radius:3px;">python3 -m http.server 8000</code><br>
+        然后访问：<br>
+        <code style="background:rgba(0,0,0,0.2);padding:2px 6px;border-radius:3px;">http://localhost:8000/apps/swarm_calculator/</code>
+      </div>`;
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>

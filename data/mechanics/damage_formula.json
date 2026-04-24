@@ -1,0 +1,59 @@
+{
+  "source": "洛克计算器 2.0 (bilibili 爱心尾巴)",
+  "nature_modifier": {
+    "加": 1.2,
+    "无": 1.0,
+    "减": 0.9
+  },
+  "stat_formulas": {
+    "hp": {
+      "expression": "ROUND(1.7 * (base + 3 * iv) + 70) * nature + 100",
+      "coef": 1.7,
+      "bias": 70,
+      "offset": 100
+    },
+    "other": {
+      "applies_to": ["attack", "special_attack", "defense", "special_defense", "speed"],
+      "expression": "ROUND(1.1 * (base + 3 * iv) + 10) * nature + 50",
+      "coef": 1.1,
+      "bias": 10,
+      "offset": 50
+    }
+  },
+  "damage_formula": {
+    "effective_power": {
+      "expression": "raw_power * stab * type_mult * buff_mult * weather_mult * mitigation_mult * other_mult",
+      "stab_match": 1.25,
+      "stab_mismatch": 1.0,
+      "weather": {
+        "rain": "雨天提升水系技能威力（具体倍率待补）"
+      },
+      "mitigation_mult": "受击方防御技能或减伤特性（如秩序鱿墨）带来的乘数，通常 < 1"
+    },
+    "final_damage": {
+      "expression": "ROUNDUP(0.9 * hit_count * effective_power * atk / def)",
+      "system_coef": 0.9
+    },
+    "percent_damage": "100 * final_damage / target_hp",
+    "kill_count": "ROUNDUP(target_hp / final_damage)"
+  },
+  "stat_diff_power_table": {
+    "description": "攻击方与防御方指定属性的最终差值决定技能威力。用于闪击（速度差）、鸣沙陷阱（防御差）等技能。",
+    "tiers": [
+      {"min": null, "max": -1, "power": 60},
+      {"min": 0, "max": 14, "power": 100},
+      {"min": 15, "max": 29, "power": 130},
+      {"min": 30, "max": 44, "power": 140},
+      {"min": 45, "max": 59, "power": 150},
+      {"min": 60, "max": 74, "power": 160},
+      {"min": 75, "max": 89, "power": 170},
+      {"min": 90, "max": 104, "power": 180},
+      {"min": 105, "max": 119, "power": 190},
+      {"min": 120, "max": 134, "power": 200},
+      {"min": 135, "max": null, "power": 200}
+    ]
+  },
+  "known_bugs": [
+    "种族值=105 且无其他加成时，计算器结果比实际大 1"
+  ]
+}

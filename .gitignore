@@ -1,0 +1,7 @@
+.claude/
+troll/
+*.xlsx
+data/archive/
+__pycache__/
+.DS_Store
+temp.py
