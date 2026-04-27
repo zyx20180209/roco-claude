@@ -22,7 +22,9 @@ def _bulk(p):
 def _all_skills(p):
     names = []
     for k in ('moves', 'jinengshi', 'xuemai'):
-        names.extend(p.get('skills', {}).get(k, []))
+        v = p.get('skills', {}).get(k, [])
+        # xuemai 是 dict，其他是 list
+        names.extend(list(v.values()) if isinstance(v, dict) else v)
     return names
 
 def by_type(*types, require_all=False):

@@ -3,7 +3,7 @@
 ## 精灵与技能数据
 
 - **洛克王国 Wiki** — https://wiki.lcx.cab/lk/
-  - 精灵基础数据（种族值、属性、特性、技能列表）：`data/raw/pokemon.json`（完整原始版归档于 `data/archive/`）
+  - 精灵基础数据（种族值、属性、特性、技能列表）：`data/raw/pokemon.json`
   - 技能库（威力、能耗、描述）：`data/raw/skills.json`
   - 属性克制矩阵：`data/raw/type_chart.json`
 

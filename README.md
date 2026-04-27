@@ -12,6 +12,7 @@
 - **精灵数据库**：239 只精灵的种族值、属性、特性、技能池、属性弱点
 - **战斗计算工具**：伤害计算、速度档位、种族值排行
 - **网页小工具**：可直接在浏览器使用的计算器（支持 GitHub Pages 部署）
+- **即时对战助手 CLI**：实时跟踪双方精灵、计算伤害与速度比较，详见 [battle/README.md](./battle/README.md)
 - **对战机制文档**：回合流程、印记/debuff 系统、伤害公式、秒杀阈值分析
 
 ## 目录结构
@@ -19,13 +20,13 @@
 ```
 roco-claude/
 ├── apps/                    # 网页小工具（可部署到 GitHub Pages）
-│   ├── swarm_calculator/    # 虫群斩杀计算器
 │   └── damage_calculator/   # 伤害计算器
+├── battle/                  # 即时对战助手 CLI
 ├── data/
 │   ├── raw/                 # 原始数据（精灵、技能、属性克制）
 │   ├── processed/           # 脚本生成的排行榜和分析数据
 │   ├── analysis/            # 单体精灵 AI 分析报告（~150只）
-│   ├── meta/                # 跨精灵综合分析（环境、克制关系）
+│   ├── meta/                # 跨精灵综合分析（含 popular_movesets.json）
 │   └── mechanics/           # 对战机制文档
 ├── scripts/
 │   ├── generates/           # 刷新 processed/ 的脚本
@@ -42,8 +43,7 @@ roco-claude/
 ### 在线使用（GitHub Pages）
 
 部署后访问：
-- `https://zyx20180209.github.io/roco-claude/apps/swarm_calculator/`
-- `https://zyx20180209.github.io/roco-claude/apps/damage_calculator/`
+- ⚔️ [伤害计算器](https://zyx20180209.github.io/roco-claude/apps/damage_calculator/)
 
 ### 本地运行
 
@@ -54,19 +54,40 @@ roco-claude/
 
 然后打开 `http://localhost:8000/apps/`
 
-### 虫群斩杀计算器
-
-- 选择释放虫群的精灵（花衣蝶 / 陨星虫 / 花魁蜂后 / 女王蜂）
-- 输入奉献层数（威力+20 / 连击+1 / 中毒+2）
-- 输入防御方精灵名称（自动获取种族值和属性克制）
-- 自动判断当场秒杀 / 回合末毒死 / 无法斩杀
-
 ### 伤害计算器
 
-- **按显示威力**：直接输入游戏内看到的威力数字（已含本系/克制/攻击buff）
-- **按技能名称**：输入技能名自动计算本系、克制、属性差（闪击/鸣沙陷阱阶梯）
-- 支持隐藏乘区：顺风 / 破空 / 风起印记
-- 攻防双方支持精灵名称自动填入种族值
+5 个模块布局：攻击方 / 防御方 / 技能 / 全局状态 / 结果
+
+技能模块两个 tab：
+
+- **按显示威力**：直接输入游戏内看到的威力数字（已含本系/克制/攻击buff/特性）
+- **按技能名称**：输入技能名自动计算本系、克制、属性差（闪击/鸣沙陷阱阶梯），并可填入攻击/防御 buff 层数
+
+全局状态：
+- 隐藏乘区（顺风 +50% / 破空 +75% / 风起印记 +20% / 其他%）
+- 对方防御技能（自动填减伤系数）
+- DoT 层数（中毒/灼烧/冰冻），自动判定回合末毒死和冻结斩杀
+- 攻防双方支持精灵名称自动填入种族值（含速度/物防）
+
+## 即时对战助手 CLI
+
+实时跟踪双方精灵、记录观察到的技能、计算伤害与速度比较。
+
+```bash
+# 创建对战
+python3 -m battle.cli new pvp001
+# 设置我方队伍
+python3 -m battle.cli set-myteam pvp001 黑猫巫师 翠顶夫人 彩虹独角兽
+# 设置敌方第一只精灵（自动从热门配招拉推测技能）
+python3 -m battle.cli set-enemy pvp001 0 岚鸟冬天的样子
+# 双方在场后看伤害与速度
+python3 -m battle.cli active pvp001 my 0
+python3 -m battle.cli active pvp001 enemy 0
+python3 -m battle.cli speed pvp001
+python3 -m battle.cli enemy-damages pvp001
+```
+
+完整用法见 [battle/README.md](./battle/README.md)。
 
 ## 数据来源
 

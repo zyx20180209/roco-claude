@@ -70,7 +70,7 @@ def calc_damage(
     defense = calc_stat(def_base, def_iv, def_nature)
     hp = calc_hp(hp_base, hp_iv, hp_nature)
 
-    damage = math.ceil(0.9 * hit_count * effective_power * mitigation * atk / defense)
+    damage = int(round(atk * hit_count * effective_power * mitigation * 37 / 41) / defense)
 
     return {
         "damage": damage,

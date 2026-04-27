@@ -1,0 +1,44 @@
+[
+  {
+    "pokemon": "寂灭骨龙",
+    "nature": {"boost": "物攻", "reduce": "魔攻"},
+    "ivs": {"hp": 10, "attack": 10, "defense": 10},
+    "skills": ["隼鳞", "电弧", "先发制人", "报复"],
+    "bloodline": null
+  },
+  {
+    "pokemon": "声波缇塔",
+    "nature": {"boost": "速度", "reduce": "魔攻"},
+    "ivs": {"hp": 10, "attack": 10, "speed": 10},
+    "skills": ["啮合传递", "地刺", "先发制人", "齿轮扭矩"],
+    "bloodline": null
+  },
+  {
+    "pokemon": "圣羽翼王",
+    "nature": {"boost": "速度", "reduce": "魔攻"},
+    "ivs": {"hp": 10, "attack": 10, "speed": 10},
+    "skills": ["水刃", "力量增效", "闪击", "疾风连袭"],
+    "bloodline": null
+  },
+  {
+    "pokemon": "岚鸟冬天的样子",
+    "nature": {"boost": "速度", "reduce": "魔攻"},
+    "ivs": {"hp": 10, "attack": 10, "speed": 10},
+    "skills": ["水刃", "闪击", "力量增效", "冰爪"],
+    "bloodline": "冰"
+  },
+  {
+    "pokemon": "绒光优优",
+    "nature": {"boost": "速度", "reduce": "物攻"},
+    "ivs": {"hp": 10, "special_attack": 10, "speed": 10},
+    "skills": ["放晴", "天光", "流沙", "热砂"],
+    "bloodline": null
+  },
+  {
+    "pokemon": "尖嘴狐仙",
+    "nature": {"boost": "HP", "reduce": "魔攻"},
+    "ivs": {"hp": 10, "defense": 10, "special_defense": 10},
+    "skills": ["火焰护盾", "高温回火", "焚烧烙印", "晒太阳"],
+    "bloodline": null
+  }
+]

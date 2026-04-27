@@ -40,7 +40,12 @@ def all_pokemon_skills(p: dict, include_tujian: bool = False) -> set[str]:
     keys = ('moves', 'jinengshi', 'xuemai')
     names = set()
     for k in keys:
-        names.update(p.get('skills', {}).get(k, []))
+        v = p.get('skills', {}).get(k, [])
+        # xuemai 是 dict，moves/jinengshi 是 list
+        if isinstance(v, dict):
+            names.update(v.values())
+        else:
+            names.update(v)
     return names
 
 

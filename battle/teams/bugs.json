@@ -1,0 +1,44 @@
+[
+  {
+    "pokemon": "花衣蝶",
+    "nature": {"boost": "HP", "reduce": "魔攻"},
+    "ivs": {"hp": 9, "special_defense": 10, "defense": 8},
+    "skills": ["虫群智慧", "虫结阵", "晒太阳", "虫群"],
+    "bloodline": "机械"
+  },
+  {
+    "pokemon": "铠甲虫",
+    "nature": {"boost": "HP", "reduce": "魔攻"},
+    "ivs": {"hp": 9, "special_defense": 10, "defense": 8},
+    "skills": ["吓退", "虫结阵", "飞断", "啃咬"],
+    "bloodline": null
+  },
+  {
+    "pokemon": "化蝶平常的样子",
+    "nature": {"boost": "物攻", "reduce": "魔攻"},
+    "ivs": {"defense": 8, "special_defense": 7, "speed": 7},
+    "skills": ["毒孢子", "棘刺", "破罐破摔", "晒太阳"],
+    "bloodline": "毒"
+  },
+  {
+    "pokemon": "食尘短绒",
+    "nature": {"boost": "魔防", "reduce": "速度"},
+    "ivs": {"hp": 10, "special_defense": 10, "defense": 9},
+    "skills": ["风墙", "遁地", "地刺", "虫群过境"],
+    "bloodline": "翼"
+  },
+  {
+    "pokemon": "陨星虫",
+    "nature": {"boost": "速度", "reduce": "魔攻"},
+    "ivs": {"hp": 8, "attack": 7, "speed": 10},
+    "skills": ["虫群", "羽翼庇护", "假寐", "有效预防"],
+    "bloodline": "翼"
+  },
+  {
+    "pokemon": "花魁蜂后",
+    "nature": {"boost": "速度", "reduce": "HP"},
+    "ivs": {"attack": 10, "defense": 7, "speed": 10},
+    "skills": ["虫群", "热身运动", "有效预防", "快速移动"],
+    "bloodline": "首领"
+  }
+]

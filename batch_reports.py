@@ -161,8 +161,10 @@ def generate_report(p: dict, repo: DataRepo) -> str:
 
     # 技能池
     all_names = []
-    for k in ('moves', 'jinengshi', 'xuemai', 'tujian'):
-        all_names.extend(p.get('skill_lists', {}).get(k, []))
+    for k in ('moves', 'jinengshi', 'xuemai'):
+        v = p.get('skills', {}).get(k, [])
+        # xuemai 是 dict
+        all_names.extend(list(v.values()) if isinstance(v, dict) else v)
     skill_details = [repo.skill_by_name[n] for n in set(all_names) if n in repo.skill_by_name]
 
     defense_profile = repo.compute_defense_profile(attrs)

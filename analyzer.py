@@ -38,7 +38,10 @@ def _collect_skill_details(pokemon: dict, repo: DataRepo) -> list[dict]:
     results = []
     seen = set()
     for key, source_label in source_map.items():
-        for name in pokemon.get("skills", {}).get(key, []):
+        v = pokemon.get("skills", {}).get(key, [])
+        # xuemai 是 dict，moves/jinengshi 是 list
+        names = list(v.values()) if isinstance(v, dict) else v
+        for name in names:
             if name in seen or name not in repo.skill_by_name:
                 continue
             seen.add(name)

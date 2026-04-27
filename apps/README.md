@@ -4,8 +4,7 @@
 
 ## 工具列表
 
-- **`swarm_calculator/`** — 虫群斩杀计算器：快速判断虫群在指定配置下能否斩杀目标
-- **`damage_calculator/`** — 伤害计算器：通用伤害计算，支持精灵名称自动填入种族值、技能名称自动填入威力
+- **`damage_calculator/`** — 伤害计算器：5 个模块（攻击方/防御方/技能/全局状态/结果），支持精灵名自动填入种族值、按显示威力或按技能名称两种模式、属性差技能（闪击/鸣沙陷阱）阶梯、隐藏乘区（顺风/破空/风起）、防御技能减伤、中毒/灼烧/冰冻 DoT 与冻结斩杀
 
 ---
 
@@ -18,7 +17,7 @@
 ./apps/serve.sh 8080     # 指定端口
 ```
 
-然后在浏览器打开：`http://localhost:8000/apps/swarm_calculator/`
+然后在浏览器打开：`http://localhost:8000/apps/damage_calculator/`
 
 脚本本质是 `python3 -m http.server`，无任何依赖。改了代码或 `data/raw/*.json` 后刷新浏览器即可生效。
 
@@ -31,7 +30,7 @@
 仓库 Settings → Pages → 选 `main` 分支 `/` 目录即可。访问路径：
 
 ```
-https://<user>.github.io/<repo>/apps/swarm_calculator/
+https://<user>.github.io/<repo>/apps/damage_calculator/
 ```
 
 部署后工具会通过相对路径 `../../data/raw/pokemon.json` 加载最新数据，无需重新打包。

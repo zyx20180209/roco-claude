@@ -27,7 +27,8 @@ def main():
 
         all_names = []
         for k in ("moves", "jinengshi", "xuemai"):
-            all_names.extend(p.get("skills", {}).get(k, []))
+            v = p.get("skills", {}).get(k, [])
+            all_names.extend(list(v.values()) if isinstance(v, dict) else v)
         skill_details = [repo.skill_by_name[n] for n in all_names if n in repo.skill_by_name]
 
         logic = build_battle_logic(p, skill_details, defense_profile)
