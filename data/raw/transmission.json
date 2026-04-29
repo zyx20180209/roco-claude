@@ -1,0 +1,38 @@
+{
+  "skills": [
+    {"name": "传感器", "transmission": 1, "position_bonus": "1或3号位时连击+1"},
+    {"name": "啮合传递", "transmission": 1, "position_bonus": "1或3号位时物攻+60%"},
+    {"name": "械斗", "transmission": 1, "position_bonus": "1号位时威力+60"},
+    {"name": "磁暴", "transmission": 1, "position_bonus": "1或3号位时威力+30"},
+    {"name": "离子震荡", "transmission": 1, "position_bonus": "3号位时威力+40"},
+    {"name": "轴承支撑", "transmission": 1, "position_bonus": "两侧技能能耗-1"},
+    {"name": "钢钻", "transmission": 1, "position_bonus": "威力=两侧技能威力和的1/3"},
+    {"name": "钢铁洪流", "transmission": 2, "position_bonus": "1号位时威力+90"},
+    {"name": "齿轮切开", "transmission": 1, "position_bonus": "1或3号位时能耗-2"}
+  ],
+  "pokemon_slot_transmission": [
+    {
+      "name": "声波缇塔",
+      "ability": "向心力",
+      "slots": [
+        {"slot": 1, "transmission": 1, "bonus": "威力+30"},
+        {"slot": 2, "transmission": 1, "bonus": "威力+30"}
+      ]
+    },
+    {
+      "name": "帕帕斯卡",
+      "ability": "翼轴",
+      "slots": [
+        {"slot": 1, "transmission": 1, "bonus": "迅捷"}
+      ]
+    },
+    {
+      "name": "贝古斯",
+      "ability": "贪心算法",
+      "slots": [
+        {"slot": 1, "transmission": 1, "bonus": "使用后敌方获得6层灼烧"}
+      ]
+    }
+  ],
+  "main_axis_pokemon": []
+}

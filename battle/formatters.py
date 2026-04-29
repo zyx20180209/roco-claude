@@ -141,7 +141,13 @@ def format_kill_chain(result: dict) -> str:
                 kill = "✅" if s.get("one_shot") else ""
                 lines.append(f"    {s['skill_name']:10} {s['damage']:>4} ({s['pct']:>5.1f}%) {kill}")
     return "\n".join(lines)
-    sess_list = result["sessions"]
+
+
+def format_list(result) -> str:
+    if isinstance(result, dict):
+        sess_list = result.get("sessions", [])
+    else:
+        sess_list = result
     if not sess_list:
         return "（无 session）"
     return "Sessions:\n  " + "\n  ".join(sess_list)
@@ -150,3 +156,4 @@ def format_kill_chain(result: dict) -> str:
 def format_generic(result: dict) -> str:
     """通用格式化：直接 JSON 输出。"""
     return json.dumps(result, ensure_ascii=False, indent=2)
+

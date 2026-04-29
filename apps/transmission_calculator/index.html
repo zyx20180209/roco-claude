@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>传动计算器</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 16px; }
+h1 { text-align: center; margin-bottom: 16px; color: #a0c4ff; font-size: 1.2rem; }
+.cards { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.card { background: #16213e; border-radius: 8px; padding: 12px; width: 260px; position: relative; }
+.card-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.card-title select { flex: 1; background: #0f3460; color: #e0e0e0; border: 1px solid #334; border-radius: 4px; padding: 4px; font-size: 0.85rem; }
+.card-title button.del { background: #5c1a1a; border: none; color: #f88; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.85rem; }
+.ability-text { font-size: 0.75rem; color: #ce93d8; background: #1a0a2e; border-radius: 4px; padding: 4px 8px; margin-bottom: 8px; min-height: 20px; }
+.slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.slot { background: #0f3460; border-radius: 6px; padding: 6px; }
+.slot-header { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.slot-num { background: #334; border-radius: 3px; padding: 1px 5px; font-size: 0.72rem; font-weight: bold; }
+.tag-locked { background: #5c3317; color: #ffb74d; border-radius: 3px; padding: 1px 4px; font-size: 0.7rem; }
+.tag-slottrans { background: #1b3a1b; color: #a5d6a7; border-radius: 3px; padding: 1px 4px; font-size: 0.7rem; }
+.slot input[type=text] { width: 100%; background: #1a1a2e; color: #e0e0e0; border: 1px solid #334; border-radius: 4px; padding: 3px 5px; font-size: 0.82rem; margin-bottom: 4px; }
+.slot select { width: 100%; background: #1a1a2e; color: #e0e0e0; border: 1px solid #334; border-radius: 4px; padding: 3px 4px; font-size: 0.78rem; }
+.add-card { width: 260px; min-height: 120px; border: 2px dashed #334; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #556; font-size: 2rem; transition: border-color 0.2s; }
+.add-card:hover { border-color: #90caf9; color: #90caf9; }
+.controls { display: flex; gap: 10px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+.controls label { font-size: 0.85rem; color: #aaa; }
+.controls input[type=number] { width: 60px; background: #0f3460; color: #e0e0e0; border: 1px solid #334; border-radius: 4px; padding: 4px 6px; font-size: 0.85rem; }
+button.primary { background: #0d47a1; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; cursor: pointer; font-size: 0.85rem; }
+button.primary:hover { background: #1565c0; }
+.jump-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.jump-row label { font-size: 0.85rem; color: #aaa; }
+.jump-row input { width: 60px; background: #0f3460; color: #e0e0e0; border: 1px solid #334; border-radius: 4px; padding: 4px 6px; font-size: 0.85rem; }
+.jump-result { background: #0f3460; border-radius: 6px; padding: 10px; font-size: 0.85rem; margin-bottom: 10px; }
+.result { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.82rem; }
+th { background: #0d47a1; padding: 5px 10px; text-align: center; white-space: nowrap; }
+td { padding: 4px 10px; text-align: center; border-bottom: 1px solid #223; white-space: nowrap; }
+tr:nth-child(even) td { background: #16213e; }
+.tag-trans { background: #1b5e20; color: #a5d6a7; border-radius: 3px; padding: 1px 4px; font-size: 0.72rem; margin-left: 3px; }
+</style>
+</head>
+<body>
+<h1>传动计算器</h1>
+<div class="cards" id="cards">
+  <div class="add-card" onclick="addCard()">+</div>
+</div>
+<div class="controls">
+  <label>模拟回合数</label>
+  <input type="number" id="turns" value="8" min="1" max="30">
+  <button class="primary" onclick="simulate()">模拟</button>
+  <button class="primary" onclick="clearAll()">清空模拟</button>
+</div>
+<div class="jump-row">
+  <label>跳转到第</label>
+  <input type="number" id="jump-turn" value="1" min="0">
+  <label>回合后</label>
+  <button class="primary" onclick="jumpTo()">查询</button>
+</div>
+<div id="jump-result" style="display:none" class="jump-result"></div>
+<div class="result" id="result"></div>
+
+<details style="margin-top:20px">
+<summary style="cursor:pointer;color:#90caf9;font-size:0.95rem;padding:8px 0">对战推断（根据观察反推初始位置）</summary>
+<div style="background:#16213e;border-radius:8px;padding:12px;margin-top:8px">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+    <label style="font-size:0.85rem;color:#aaa">精灵模板</label>
+    <select id="infer-template" style="background:#0f3460;color:#e0e0e0;border:1px solid #334;border-radius:4px;padding:4px;font-size:0.85rem" onchange="inferTemplateChange()">
+      <option value="">-- 选择精灵 --</option>
+    </select>
+    <label style="font-size:0.85rem;color:#aaa">技能数</label>
+    <select id="infer-skill-count" style="background:#0f3460;color:#e0e0e0;border:1px solid #334;border-radius:4px;padding:4px;font-size:0.85rem">
+      <option value="4">4</option><option value="3">3</option><option value="2">2</option>
+    </select>
+    <button class="primary" onclick="inferReset()">重置</button>
+  </div>
+  <div id="infer-ability" style="font-size:0.75rem;color:#ce93d8;background:#1a0a2e;border-radius:4px;padding:4px 8px;margin-bottom:10px;min-height:18px"></div>
+  <div style="font-size:0.8rem;color:#aaa;margin-bottom:6px">添加观察：第几回合使用了什么技能</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+    <label style="font-size:0.85rem;color:#aaa">第</label>
+    <input type="number" id="infer-turn" value="1" min="1" style="width:50px;background:#0f3460;color:#e0e0e0;border:1px solid #334;border-radius:4px;padding:4px">
+    <label style="font-size:0.85rem;color:#aaa">回合，使用了</label>
+    <input type="text" id="infer-skill" placeholder="技能名" style="width:120px;background:#0f3460;color:#e0e0e0;border:1px solid #334;border-radius:4px;padding:4px;font-size:0.85rem">
+    <button class="primary" onclick="inferAddObservation()">添加观察</button>
+  </div>
+  <div id="infer-observations" style="font-size:0.8rem;color:#aaa;margin-bottom:10px"></div>
+  <div id="infer-result" style="font-size:0.85rem"></div>
+</div>
+</details>
+
+<script>
+let txData = null;
+let cardCount = 0;
+let simHistory = []; // simHistory[turn][cardId] = positions array
+
+async function loadData() {
+  const r = await fetch('../../data/raw/transmission.json');
+  txData = await r.json();
+  // populate infer template select
+  const inferSel = document.getElementById('infer-template');
+  txData.pokemon_slot_transmission.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name; opt.textContent = p.name;
+    inferSel.appendChild(opt);
+  });
+  addCard();
+}
+
+function getTemplateOptions() {
+  if (!txData) return '';
+  const names = [
+    ...txData.pokemon_slot_transmission.map(p => p.name),
+    ...txData.main_axis_pokemon.map(p => p.name)
+  ];
+  return '<option value="">-- 精灵模板 --</option>' + names.map(n => `<option value="${n}">${n}</option>`).join('');
+}
+
+function getSkillOptions() {
+  if (!txData) return '<option value="">无传动</option>';
+  return '<option value="">无传动</option>' +
+    '<option value="__locked__">主轴（位置锁定）</option>' +
+    txData.skills.map(s => `<option value="${s.name}|${s.transmission}">${s.name}（传动${s.transmission}）</option>`).join('');
+}
+
+function onSkillSelect(cardId, slot) {
+  const sel = document.getElementById(`c${cardId}-trans-${slot}`);
+  const nameInput = document.getElementById(`c${cardId}-name-${slot}`);
+  if (sel.value === '__locked__') {
+    nameInput.value = nameInput.value || `主轴技能`;
+  } else if (sel.value) {
+    const [skillName] = sel.value.split('|');
+    nameInput.value = skillName;
+  }
+}
+
+function addCard() {
+  const id = ++cardCount;
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.id = `card-${id}`;
+  div.innerHTML = `
+    <div class="card-title">
+      <select onchange="applyTemplate(${id})">${getTemplateOptions()}</select>
+      <button class="del" onclick="removeCard(${id})">×</button>
+    </div>
+    <div class="ability-text" id="ability-${id}"></div>
+    <div class="slots" id="slots-${id}"></div>`;
+
+  const addBtn = document.querySelector('.add-card');
+  document.getElementById('cards').insertBefore(div, addBtn);
+  buildSlots(id, [], {});
+}
+
+function buildSlots(id, lockedSlots, slotTransByNum) {
+  const container = document.getElementById(`slots-${id}`);
+  container.innerHTML = '';
+  for (let i = 1; i <= 4; i++) {
+    const isLocked = lockedSlots.includes(i);
+    const slotTransX = slotTransByNum[i] || 0;
+    container.innerHTML += `
+    <div class="slot">
+      <div class="slot-header">
+        <span class="slot-num">${i}号</span>
+        ${isLocked ? '<span class="tag-locked">主轴</span>' : ''}
+        ${slotTransX > 0 ? `<span class="tag-slottrans">槽传${slotTransX}</span>` : ''}
+      </div>
+      <input type="text" id="c${id}-name-${i}" placeholder="技能名">
+      <select id="c${id}-trans-${i}" onchange="onSkillSelect(${id},${i})">${getSkillOptions()}</select>
+    </div>`;
+  }
+}
+
+function applyTemplate(id) {
+  const sel = document.querySelector(`#card-${id} .card-title select`);
+  const name = sel.value;
+  const abilityEl = document.getElementById(`ability-${id}`);
+  if (!name || !txData) { abilityEl.textContent = ''; buildSlots(id, [], {}); return; }
+
+  const slotP = txData.pokemon_slot_transmission.find(p => p.name === name);
+  const axisP = txData.main_axis_pokemon.find(p => p.name === name);
+
+  if (slotP) {
+    const [aName, aDesc] = slotP.ability.split('：');
+    abilityEl.innerHTML = `<b>${aName}</b>：${aDesc || ''}`;
+    const map = {};
+    slotP.slots.forEach(s => { map[s.slot] = s.transmission; });
+    buildSlots(id, [], map);
+  } else if (axisP) {
+    const [aName, aDesc] = axisP.ability.split('：');
+    abilityEl.innerHTML = `<b>${aName}</b>：${aDesc || ''}`;
+    buildSlots(id, axisP.locked_slots, {});
+  }
+}
+
+function removeCard(id) {
+  document.getElementById(`card-${id}`)?.remove();
+}
+
+function clearAll() {
+  simHistory = [];
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('jump-result').style.display = 'none';
+}
+
+function getCardIds() {
+  return [...document.querySelectorAll('.card')].map(c => parseInt(c.id.split('-')[1]));
+}
+
+function getCardConfig(id) {
+  const sel = document.querySelector(`#card-${id} .card-title select`);
+  const name = sel?.value || '';
+  const slotP = txData?.pokemon_slot_transmission.find(p => p.name === name);
+  const axisP = txData?.main_axis_pokemon.find(p => p.name === name);
+  const lockedSlots = axisP ? axisP.locked_slots : [];
+  const slotTransValues = [0, 0, 0, 0]; // index by slot-1
+  if (slotP) slotP.slots.forEach(s => { slotTransValues[s.slot - 1] = s.transmission; });
+
+  const skills = Array.from({length: 4}, (_, i) => {
+    const slot = i + 1;
+    const v = document.getElementById(`c${id}-trans-${slot}`)?.value || '';
+    const isLocked = v === '__locked__' || lockedSlots.includes(slot);
+    return {
+      name: document.getElementById(`c${id}-name-${slot}`)?.value || `技能${slot}`,
+      trans: (v && v !== '__locked__') ? parseInt(v.split('|')[1]) : 0,
+      locked: isLocked,
+    };
+  });
+  return { skills, lockedSlots: skills.map((sk, i) => sk.locked ? i+1 : -1).filter(x => x > 0), slotTransValues };
+}
+
+function stepPositions(positions, config) {
+  const { skills, lockedSlots = [], slotTransValues = [] } = config;
+  const N = positions.length;
+  const lockedSlotSet = new Set(lockedSlots.map(s => s - 1));
+  const freeSlots = Array.from({length: N}, (_, i) => i).filter(s => !lockedSlotSet.has(s));
+  if (freeSlots.length === 0) return [...positions];
+  const Nf = freeSlots.length;
+  let cur = [...positions];
+  const totalMoves = new Array(N).fill(0);
+  freeSlots.forEach(slot => {
+    const idx = cur[slot];
+    totalMoves[idx] = (skills[idx]?.trans || 0) + (slotTransValues[slot] || 0);
+  });
+  const maxSteps = Math.max(0, ...totalMoves);
+  for (let step = 1; step <= maxSteps; step++) {
+    const freeSkills = freeSlots.map(s => cur[s]);
+    const movers = [], stayers = [];
+    freeSkills.forEach((si, fi) => {
+      if (totalMoves[si] >= step) movers.push({skillIdx: si, origFi: fi});
+      else stayers.push({skillIdx: si, origFi: fi});
+    });
+    const targetFi = new Array(Nf).fill(null);
+    for (const m of movers) {
+      let p = (m.origFi + 1) % Nf;
+      while (targetFi[p] !== null) p = (p + 1) % Nf;
+      targetFi[p] = m.skillIdx;
+    }
+    const rem = [];
+    for (let fi = 0; fi < Nf; fi++) if (targetFi[fi] === null) rem.push(fi);
+    stayers.sort((a, b) => a.origFi - b.origFi);
+    stayers.forEach((s, i) => { targetFi[rem[i]] = s.skillIdx; });
+    const newPos = [...cur];
+    freeSlots.forEach((slot, fi) => { newPos[slot] = targetFi[fi]; });
+    cur = newPos;
+  }
+  return cur;
+}
+
+function simulate() {
+  const turns = parseInt(document.getElementById('turns').value) || 8;
+  const ids = getCardIds();
+  if (!ids.length) return;
+
+  const allConfigs = {};
+  ids.forEach(id => { allConfigs[id] = getCardConfig(id); });
+
+  let curPos = {};
+  ids.forEach(id => { curPos[id] = [0,1,2,3]; });
+
+  simHistory = [{ ...curPos }];
+  for (let t = 0; t < turns; t++) {
+    const next = {};
+    ids.forEach(id => { next[id] = stepPositions(curPos[id], allConfigs[id]); });
+    curPos = next;
+    simHistory.push({ ...curPos });
+  }
+
+  renderTable(ids, allConfigs, turns);
+}
+
+function renderTable(ids, allConfigs, turns) {
+  let html = '<table><thead><tr><th>回合</th>';
+  ids.forEach(id => {
+    const name = document.querySelector(`#card-${id} .card-title select`)?.value || `精灵${id}`;
+    for (let s = 1; s <= 4; s++) html += `<th>${name || `精灵${id}`}<br>${s}号位</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  for (let t = 0; t <= turns; t++) {
+    html += `<tr><td>${t === 0 ? '初始' : `第${t}回合后`}</td>`;
+    ids.forEach(id => {
+      const pos = simHistory[t][id];
+      const skills = allConfigs[id].skills;
+      pos.forEach(skillIdx => {
+        const sk = skills[skillIdx];
+        html += `<td>${sk.name}${sk.trans > 0 ? `<span class="tag-trans">传动${sk.trans}</span>` : ''}</td>`;
+      });
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  document.getElementById('result').innerHTML = html;
+}
+
+function jumpTo() {
+  const t = parseInt(document.getElementById('jump-turn').value);
+  if (!simHistory.length) { alert('请先点击模拟'); return; }
+  if (t < 0 || t >= simHistory.length) { alert(`请先模拟足够回合数`); return; }
+
+  const ids = getCardIds();
+  let html = `<b>${t === 0 ? '初始状态' : `第${t}回合后`}</b><br><br>`;
+  ids.forEach(id => {
+    const name = document.querySelector(`#card-${id} .card-title select`)?.value || `精灵${id}`;
+    const skills = getCardConfig(id).skills;
+    const pos = simHistory[t][id];
+    html += `<b>${name || `精灵${id}`}</b>：`;
+    html += pos.map((si, slot) => `${slot+1}号位=${skills[si].name}`).join('　');
+    html += '<br>';
+  });
+
+  const el = document.getElementById('jump-result');
+  el.style.display = 'block';
+  el.innerHTML = html;
+}
+
+loadData();
+
+// ── 对战推断 ──────────────────────────────────────────
+let inferConfig = { slotTransValues: [0,0,0,0] };
+let inferObservations = []; // [{turn, skillName}]
+let inferSkillNames = []; // known skill names in order of discovery
+
+function inferTemplateChange() {
+  const name = document.getElementById('infer-template').value;
+  const abilityEl = document.getElementById('infer-ability');
+  inferConfig = { slotTransValues: [0,0,0,0] };
+  if (!name || !txData) { abilityEl.textContent = ''; return; }
+  const slotP = txData.pokemon_slot_transmission.find(p => p.name === name);
+  if (slotP) {
+    const [aName, aDesc] = slotP.ability.split('：');
+    abilityEl.innerHTML = `<b>${aName}</b>：${aDesc || ''}`;
+    const sv = [0,0,0,0];
+    slotP.slots.forEach(s => { sv[s.slot-1] = s.transmission; });
+    inferConfig.slotTransValues = sv;
+  }
+  inferReset();
+}
+
+function inferReset() {
+  inferObservations = [];
+  inferSkillNames = [];
+  document.getElementById('infer-observations').innerHTML = '';
+  document.getElementById('infer-result').innerHTML = '';
+}
+
+function inferAddObservation() {
+  const turn = parseInt(document.getElementById('infer-turn').value);
+  const skill = document.getElementById('infer-skill').value.trim();
+  if (!skill) return;
+  if (!inferSkillNames.includes(skill)) inferSkillNames.push(skill);
+  inferObservations.push({ turn, skillName: skill });
+
+  const obsEl = document.getElementById('infer-observations');
+  obsEl.innerHTML = inferObservations.map((o,i) =>
+    `<span style="margin-right:10px">第${o.turn}回合：${o.skillName} <span style="cursor:pointer;color:#f88" onclick="inferRemove(${i})">×</span></span>`
+  ).join('');
+
+  inferSolve();
+}
+
+function inferRemove(i) {
+  inferObservations.splice(i, 1);
+  const obsEl = document.getElementById('infer-observations');
+  obsEl.innerHTML = inferObservations.map((o,i) =>
+    `<span style="margin-right:10px">第${o.turn}回合：${o.skillName} <span style="cursor:pointer;color:#f88" onclick="inferRemove(${i})">×</span></span>`
+  ).join('');
+  inferSolve();
+}
+
+function inferSolve() {
+  const skillCount = parseInt(document.getElementById('infer-skill-count').value);
+  const N = skillCount;
+  const known = inferSkillNames;
+  if (!known.length || !inferObservations.length) {
+    document.getElementById('infer-result').innerHTML = '';
+    return;
+  }
+
+  // Generate all permutations of known skills into N slots (unknown slots = null)
+  // Skills not yet seen are represented as placeholders
+  const slots = Array.from({length: N}, (_, i) => i);
+  const perms = permutations(known, N);
+
+  // For each permutation, simulate and check all observations
+  const valid = perms.filter(perm => {
+    // perm[slotIdx] = skillName or null
+    // Build a fake config: skills with trans=0 (unknown), slotTransValues from inferConfig
+    const skills = perm.map(name => ({ name: name || '?', trans: 0 }));
+    const config = { skills, lockedSlots: [], slotTransValues: inferConfig.slotTransValues };
+    let pos = Array.from({length: N}, (_, i) => i);
+
+    // Simulate turn by turn up to max observed turn
+    const maxTurn = Math.max(...inferObservations.map(o => o.turn));
+    const history = [pos];
+    for (let t = 0; t < maxTurn; t++) {
+      pos = stepPositions(pos, config);
+      history.push(pos);
+    }
+
+    // Check each observation: at turn t, the skill used must be in a usable slot (slot 0 = 1号位)
+    // We don't know which slot was used, just that the skill was available (in any slot)
+    // Actually: the player chose to use it, so it was in some slot. We just verify it exists in the lineup.
+    return inferObservations.every(o => {
+      const posAtTurn = history[o.turn];
+      // The observed skill must be at slot 0 (1号位) at that turn
+      return perm[posAtTurn[0]] === o.skillName;
+    });
+  });
+
+  renderInferResult(valid, N);
+}
+
+function permutations(items, N) {
+  // Place known items into N slots, remaining slots = null
+  // Returns all arrangements of items into N slots (items.length <= N)
+  const result = [];
+  const slots = new Array(N).fill(null);
+  function place(idx, used) {
+    if (idx === items.length) { result.push([...slots]); return; }
+    for (let s = 0; s < N; s++) {
+      if (slots[s] === null) {
+        slots[s] = items[idx];
+        place(idx + 1, used);
+        slots[s] = null;
+      }
+    }
+  }
+  place(0, new Set());
+  return result;
+}
+
+function renderInferResult(valid, N) {
+  const el = document.getElementById('infer-result');
+  if (!valid.length) {
+    el.innerHTML = '<span style="color:#f88">无匹配配置，请检查观察记录</span>';
+    return;
+  }
+
+  // Find slots where all valid perms agree
+  const slotLabels = Array.from({length: N}, (_, i) => `${i+1}号位`);
+  let html = `<b>匹配配置数：${valid.length}</b><br><br>`;
+
+  // Show consensus: for each slot, if all perms have same skill there
+  html += '<table style="border-collapse:collapse;font-size:0.82rem"><thead><tr><th style="padding:4px 10px;background:#0d47a1">配置</th>';
+  slotLabels.forEach(l => { html += `<th style="padding:4px 10px;background:#0d47a1">${l}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  valid.slice(0, 10).forEach((perm, i) => {
+    html += `<tr><td style="padding:3px 8px;border-bottom:1px solid #223">#${i+1}</td>`;
+    perm.forEach(name => {
+      html += `<td style="padding:3px 8px;border-bottom:1px solid #223">${name || '?'}</td>`;
+    });
+    html += '</tr>';
+  });
+  if (valid.length > 10) html += `<tr><td colspan="${N+1}" style="padding:3px 8px;color:#aaa">...还有 ${valid.length-10} 种</td></tr>`;
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+</script>
+</body>
+</html>

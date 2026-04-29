@@ -105,6 +105,8 @@ battle enemy-damages <id>        # 敌方所有技能对我方伤害（三档估
 battle bench-threats <id>        # 敌方场下精灵的威胁评估
 ```
 
+> 想记录高分局视频的对战流程？见独立工具 [`replay/`](../replay/README.md)
+
 ---
 
 ## 开发路线图

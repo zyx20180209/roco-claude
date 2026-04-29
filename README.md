@@ -13,6 +13,7 @@
 - **战斗计算工具**：伤害计算、速度档位、种族值排行
 - **网页小工具**：可直接在浏览器使用的计算器（支持 GitHub Pages 部署）
 - **即时对战助手 CLI**：实时跟踪双方精灵、计算伤害与速度比较，详见 [battle/README.md](./battle/README.md)
+- **对战回放记录 CLI**：看高分局视频时按回合记录双方动作，详见 [replay/README.md](./replay/README.md)
 - **对战机制文档**：回合流程、印记/debuff 系统、伤害公式、秒杀阈值分析
 
 ## 目录结构
@@ -22,6 +23,7 @@ roco-claude/
 ├── apps/                    # 网页小工具（可部署到 GitHub Pages）
 │   └── damage_calculator/   # 伤害计算器
 ├── battle/                  # 即时对战助手 CLI
+├── replay/                  # 对战回放记录 CLI
 ├── data/
 │   ├── raw/                 # 原始数据（精灵、技能、属性克制）
 │   ├── processed/           # 脚本生成的排行榜和分析数据
@@ -44,6 +46,8 @@ roco-claude/
 
 部署后访问：
 - ⚔️ [伤害计算器](https://zyx20180209.github.io/roco-claude/apps/damage_calculator/)
+- ⚙️ [传动计算器](https://zyx20180209.github.io/roco-claude/apps/transmission_calculator/)
+- 📋 [对战回放记录](https://zyx20180209.github.io/roco-claude/apps/replay_recorder/)
 
 ### 本地运行
 
