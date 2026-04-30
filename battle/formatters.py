@@ -119,6 +119,9 @@ def format_kill_chain(result: dict) -> str:
             lines.append(f"    {def_label:30} → {dmg:>4} 伤害  {verdict}")
         lines.append("")
     return "\n".join(lines)
+
+
+def format_bench_threats(result: dict) -> str:
     lines = [f"=== 敌方场下威胁 → {result['defender']} ==="]
     if not result["bench_threats"]:
         return "\n".join(lines + ["  （无场下精灵）"])
@@ -128,7 +131,7 @@ def format_kill_chain(result: dict) -> str:
         if not entry["skills"]:
             lines.append("    （无已知攻击技能）")
             continue
-        for s in entry["skills"][:3]:  # 只显示前 3 个最高伤害
+        for s in entry["skills"][:3]:
             if "tiers" in s:
                 t = {t["tier"]: t for t in s["tiers"]}
                 lines.append(
@@ -157,3 +160,11 @@ def format_generic(result: dict) -> str:
     """通用格式化：直接 JSON 输出。"""
     return json.dumps(result, ensure_ascii=False, indent=2)
 
+
+
+def format_decide(result: dict) -> str:
+    lines = [f"我方: {result['my_pokemon']}  vs  敌方: {result['enemy_pokemon']}", ""]
+    for i, a in enumerate(result["actions"], 1):
+        reasons = "、".join(a.get("reasons", [])) or "—"
+        lines.append(f"  {i}. [{a['score']:>4}] {a['label']:16s}  {reasons}")
+    return "\n".join(lines)

@@ -62,7 +62,7 @@ select, input[type=text], input[type=number] {
 }
 
 /* 历史 */
-.turn-history { max-height: 200px; overflow-y: auto; }
+.turn-history { max-height: 400px; overflow-y: auto; }
 .turn-item { border-bottom: 1px solid #223; padding: 5px 0; font-size: 0.8rem; }
 .turn-label { color: #90caf9; font-weight: bold; margin-right: 8px; }
 .change-summary { color: #aaa; }
@@ -89,10 +89,27 @@ select, input[type=text], input[type=number] {
       <div class="team-inputs" id="enemy-team-inputs"></div>
     </div>
   </div>
-  <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+  <div style="margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    <div style="display:flex;gap:6px;align-items:center">
+      <label style="font-size:0.82rem;color:#a5d6a7">我方首发</label>
+      <select id="my-starter" style="background:#0f3460;color:#e0e0e0;border:1px solid #334;border-radius:4px;padding:4px;font-size:0.82rem">
+        <option value="">-- 选择 --</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <label style="font-size:0.82rem;color:#f48fb1">敌方首发</label>
+      <select id="enemy-starter" style="background:#0f3460;color:#e0e0e0;border:1px solid #334;border-radius:4px;padding:4px;font-size:0.82rem">
+        <option value="">-- 选择 --</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
     <input type="text" id="replay-id" placeholder="回放ID（如 r001）" style="width:160px">
     <button class="primary" onclick="startReplay()">开始记录</button>
     <button class="primary" onclick="loadFromStorage()">恢复上次</button>
+    <label class="primary" style="cursor:pointer;padding:5px 12px;background:#0d47a1;border-radius:4px;font-size:0.82rem">
+      导入 JSON <input type="file" accept=".json" style="display:none" onchange="importJSON(this)">
+    </label>
   </div>
 </section>
 
@@ -102,10 +119,12 @@ select, input[type=text], input[type=number] {
     <div>
       <h2 style="color:#a5d6a7">我方</h2>
       <div class="team-grid" id="my-team-display"></div>
+      <div style="margin-top:6px;font-size:0.78rem;color:#fff176" id="my-field-marks"></div>
     </div>
     <div>
       <h2 style="color:#f48fb1">敌方</h2>
       <div class="team-grid" id="enemy-team-display"></div>
+      <div style="margin-top:6px;font-size:0.78rem;color:#fff176" id="enemy-field-marks"></div>
     </div>
   </div>
 </section>
@@ -193,6 +212,14 @@ select, input[type=text], input[type=number] {
           <label>被击杀</label>
           <input type="checkbox" id="f-fainted">
         </div>
+        <div class="field-box">
+          <label>战败</label>
+          <input type="checkbox" id="f-defeated">
+        </div>
+        <div class="field-box">
+          <label>投降</label>
+          <input type="checkbox" id="f-surrender">
+        </div>
       </div>
     </div>
 
@@ -254,8 +281,9 @@ select, input[type=text], input[type=number] {
 <!-- 操作栏 -->
 <section id="action-section" style="display:none">
   <div class="action-bar">
-    <button class="success" onclick="submitTurn()">提交本回合</button>
-    <button class="primary" onclick="undoTurn()">撤销上回合</button>
+    <button class="success" onclick="submitTurn()" id="btn-submit">提交本回合</button>
+    <button class="primary" onclick="prevTurn()" id="btn-prev">回到上回合</button>
+    <button class="warn" onclick="cancelEdit()" id="btn-cancel-edit" style="display:none">取消编辑</button>
     <button class="primary" onclick="exportJSON()">导出 JSON</button>
     <button class="warn" onclick="resetAll()">重置</button>
   </div>
@@ -264,9 +292,10 @@ select, input[type=text], input[type=number] {
 <!-- 历史 -->
 <section id="history-section" style="display:none">
   <h2>回合历史</h2>
+  <div id="result-banner" style="display:none;background:#3a2a00;color:#ffd700;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-weight:bold"></div>
   <div class="turn-history" id="turn-history"></div>
 </section>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

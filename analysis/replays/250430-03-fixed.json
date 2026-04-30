@@ -1,0 +1,747 @@
+{
+  "id": "r1777518060525",
+  "created_at": "2026-04-30T03:01:00.525Z",
+  "my_team": [
+    "尖嘴狐仙",
+    "寂灭骨龙",
+    "圣剑x",
+    "圣羽翼王",
+    "黑羽夫人",
+    "奇丽花"
+  ],
+  "enemy_team": [
+    "白金独角兽",
+    "化蝶",
+    "圣剑x",
+    "圣羽翼王",
+    "岚鸟",
+    "千棘盔"
+  ],
+  "turns": [
+    {
+      "turn": 1,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "exited": true
+        },
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "skill": "退化",
+          "energy_delta": -2
+        },
+        {
+          "side": "my",
+          "pokemon": "尖嘴狐仙",
+          "entered": true,
+          "passive_effects": {
+            "moe": 1
+          }
+        }
+      ]
+    },
+    {
+      "turn": 2,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "尖嘴狐仙",
+          "skill": "冰点",
+          "energy_delta": -2
+        },
+        {
+          "side": "enemy",
+          "pokemon": "千棘盔",
+          "entered": true,
+          "hp_pct": 97,
+          "damage_received": {
+            "direct": null,
+            "dot": 19
+          },
+          "dots": {
+            "burn": 4,
+            "freeze": 5
+          }
+        }
+      ]
+    },
+    {
+      "turn": 3,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "千棘盔",
+          "skill": "打湿",
+          "energy_delta": -4,
+          "damage_received": {
+            "direct": null,
+            "dot": 29
+          },
+          "dots": {
+            "burn": 4,
+            "freeze": 5
+          },
+          "marks_added": [
+            "湿润印记"
+          ]
+        },
+        {
+          "side": "my",
+          "pokemon": "尖嘴狐仙",
+          "skill": "冰点",
+          "hp_pct": 94,
+          "hp_cur": 407,
+          "hp_max": 432,
+          "energy_delta": -2,
+          "damage_received": {
+            "direct": null,
+            "dot": 25
+          },
+          "dots": {
+            "poison": 2
+          }
+        }
+      ]
+    },
+    {
+      "turn": 4,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "千棘盔",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "尖嘴狐仙",
+          "skill": "焚烧烙印",
+          "hp_pct": 30,
+          "hp_cur": 129,
+          "hp_max": 432,
+          "energy_delta": -3,
+          "damage_received": {
+            "direct": 253,
+            "dot": 25
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "岚鸟",
+          "entered": true,
+          "skill": "龙卷风",
+          "hp_pct": 91,
+          "energy_delta": -4,
+          "damage_received": {
+            "direct": null,
+            "dot": 38
+          },
+          "dots": {
+            "burn": 5,
+            "freeze": 2
+          },
+          "marks_removed": [
+            "湿润印记"
+          ]
+        }
+      ]
+    },
+    {
+      "turn": 5,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "尖嘴狐仙",
+          "exited": true
+        },
+        {
+          "side": "enemy",
+          "pokemon": "岚鸟",
+          "skill": "撕咬",
+          "energy_delta": -3,
+          "damage_received": {
+            "direct": null,
+            "dot": 15
+          }
+        },
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "entered": true,
+          "hp_pct": 43,
+          "hp_cur": 211,
+          "hp_max": 490,
+          "damage_received": {
+            "direct": 279,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 6,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "fainted": true,
+          "hp_pct": 0,
+          "hp_cur": 0,
+          "hp_max": 490,
+          "damage_received": {
+            "direct": 279,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "岚鸟",
+          "skill": "撕咬",
+          "energy_delta": -3,
+          "damage_received": {
+            "direct": null,
+            "dot": 7
+          }
+        }
+      ]
+    },
+    {
+      "turn": 7,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "黑羽夫人",
+          "entered": true,
+          "skill": "水刃",
+          "energy_delta": -4
+        },
+        {
+          "side": "enemy",
+          "pokemon": "岚鸟",
+          "skill": "聚能",
+          "hp_pct": 40,
+          "energy_delta": 5,
+          "damage_received": {
+            "direct": 175,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 8,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "黑羽夫人",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "entered": true,
+          "skill": "水刃",
+          "energy_delta": -4
+        },
+        {
+          "side": "enemy",
+          "pokemon": "岚鸟",
+          "fainted": true,
+          "hp_pct": 0,
+          "damage_received": {
+            "direct": 133,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "白金独角兽",
+          "entered": true
+        }
+      ]
+    },
+    {
+      "turn": 9,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣剑x",
+          "entered": true,
+          "hp_pct": 87,
+          "hp_cur": 449,
+          "hp_max": 517,
+          "damage_received": {
+            "direct": 68,
+            "dot": null
+          },
+          "dots": {
+            "freeze": 2
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "白金独角兽",
+          "boss": true,
+          "skill": "折射",
+          "energy_delta": -4,
+          "buffs": {
+            "special_attack": 2,
+            "speed": 5,
+            "hit_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "turn": 10,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "白金独角兽",
+          "skill": "气泡",
+          "hp_pct": 25,
+          "energy_delta": -2,
+          "damage_received": {
+            "direct": 294,
+            "dot": null
+          }
+        },
+        {
+          "side": "my",
+          "pokemon": "圣剑x",
+          "skill": "齿轮切开",
+          "hp_pct": 23,
+          "hp_cur": 120,
+          "hp_max": 517,
+          "energy_delta": -3,
+          "damage_received": {
+            "direct": 329,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 11,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣剑x",
+          "skill": "先发制人",
+          "energy_delta": -2
+        },
+        {
+          "side": "enemy",
+          "pokemon": "白金独角兽",
+          "fainted": true,
+          "hp_pct": 0,
+          "damage_received": {
+            "direct": 99,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "千棘盔",
+          "entered": true
+        }
+      ]
+    },
+    {
+      "turn": 12,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣剑x",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "entered": true,
+          "skill": "水刃",
+          "hp_pct": 94,
+          "hp_cur": 419,
+          "hp_max": 445,
+          "energy_delta": -4,
+          "damage_received": {
+            "direct": null,
+            "dot": 26
+          },
+          "dots": {
+            "poison": 2
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "千棘盔",
+          "skill": "打湿",
+          "hp_pct": 64,
+          "energy_delta": -4,
+          "damage_received": {
+            "direct": 124,
+            "dot": null
+          },
+          "marks_added": [
+            "湿润印记"
+          ]
+        }
+      ]
+    },
+    {
+      "turn": 13,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "skill": "水刃",
+          "hp_pct": 92,
+          "hp_cur": 393,
+          "hp_max": 425,
+          "damage_received": {
+            "direct": null,
+            "dot": 26
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "entered": true
+        },
+        {
+          "side": "enemy",
+          "pokemon": "千棘盔",
+          "fainted": true,
+          "hp_pct": 0,
+          "damage_received": {
+            "direct": 124,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 14,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "尖嘴狐仙",
+          "entered": true,
+          "fainted": true,
+          "damage_received": {
+            "direct": 280,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "圣羽翼王",
+          "entered": true,
+          "skill": "闪击",
+          "energy_delta": -3
+        },
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "entered": true,
+          "hp_pct": 100,
+          "hp_cur": 490,
+          "hp_max": 490
+        },
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "exited": true
+        }
+      ]
+    },
+    {
+      "turn": 15,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "entered": true,
+          "skill": "水刃"
+        },
+        {
+          "side": "enemy",
+          "pokemon": "圣羽翼王",
+          "exited": true
+        },
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "entered": true,
+          "hp_pct": 47,
+          "damage_received": {
+            "direct": 139,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 16,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "entered": true,
+          "passive_effects": {
+            "moe": 1
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "skill": "退化",
+          "energy_delta": -1
+        }
+      ]
+    },
+    {
+      "turn": 17,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "skill": "隼鳞",
+          "hp_pct": 50,
+          "hp_cur": 219,
+          "hp_max": 441,
+          "energy_delta": -6,
+          "damage_received": {
+            "direct": 222,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "skill": "破罐破摔",
+          "energy_delta": -2,
+          "passive_effects": {
+            "moe": 1
+          }
+        }
+      ]
+    },
+    {
+      "turn": 18,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "entered": true,
+          "skill": "水刃",
+          "hp_pct": 56,
+          "hp_cur": 248,
+          "hp_max": 445,
+          "damage_received": {
+            "direct": 145,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "skill": "破罐破摔",
+          "energy_delta": -2,
+          "passive_effects": {
+            "moe": 1
+          }
+        }
+      ]
+    },
+    {
+      "turn": 19,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "化蝶",
+          "exited": true
+        },
+        {
+          "side": "enemy",
+          "pokemon": "圣羽翼王",
+          "entered": true,
+          "skill": "闪击",
+          "hp_pct": 76,
+          "energy_delta": -3,
+          "damage_received": {
+            "direct": 109,
+            "dot": null
+          }
+        },
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "skill": "水刃",
+          "hp_pct": 29,
+          "hp_cur": 129,
+          "hp_max": 445,
+          "damage_received": {
+            "direct": 119,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 20,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "skill": "愿力冲击",
+          "hp_pct": 2,
+          "hp_cur": 10,
+          "hp_max": 445,
+          "energy_delta": -2,
+          "damage_received": {
+            "direct": 119,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "圣羽翼王",
+          "skill": "闪击",
+          "hp_pct": 42,
+          "energy_delta": -3,
+          "damage_received": {
+            "direct": 153,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 21,
+      "changes": [
+        {
+          "side": "my",
+          "pokemon": "圣羽翼王",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "entered": true,
+          "hp_pct": 20,
+          "hp_cur": 90,
+          "hp_max": 441,
+          "damage_received": {
+            "direct": 129,
+            "dot": null
+          }
+        },
+        {
+          "side": "enemy",
+          "pokemon": "圣羽翼王",
+          "skill": "闪击"
+        }
+      ]
+    },
+    {
+      "turn": 22,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "圣羽翼王",
+          "exited": true
+        },
+        {
+          "side": "enemy",
+          "pokemon": "圣剑x",
+          "entered": true
+        },
+        {
+          "side": "my",
+          "pokemon": "寂灭骨龙",
+          "exited": true
+        },
+        {
+          "side": "my",
+          "pokemon": "黑羽夫人",
+          "entered": true
+        }
+      ]
+    },
+    {
+      "turn": 23,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "圣剑x",
+          "skill": "鸣沙陷阱",
+          "hp_pct": 66,
+          "energy_delta": -4,
+          "damage_received": {
+            "direct": 205,
+            "dot": null
+          }
+        },
+        {
+          "side": "my",
+          "pokemon": "黑羽夫人",
+          "skill": "水刃",
+          "hp_pct": 68,
+          "hp_cur": 302,
+          "hp_max": 445,
+          "damage_received": {
+            "direct": 143,
+            "dot": null
+          }
+        }
+      ]
+    },
+    {
+      "turn": 24,
+      "changes": [
+        {
+          "side": "enemy",
+          "pokemon": "圣剑x",
+          "surrender": true
+        }
+      ]
+    }
+  ],
+  "result": {
+    "winner": "my",
+    "loser": "enemy",
+    "reason": "surrender",
+    "ended_at_turn": 24
+  },
+  "starting_active": {
+    "my": "寂灭骨龙",
+    "enemy": "化蝶"
+  }
+}

@@ -117,6 +117,9 @@ def main(argv=None):
     p_infer.add_argument("skill", help="对方使用的技能名")
     p_infer.add_argument("damage", type=int, help="实际造成的伤害数值")
 
+    p_decide = sub.add_parser("decide", help="推荐本回合最优动作")
+    p_decide.add_argument("session_id")
+
     args = parser.parse_args(argv)
     return _dispatch(args)
 
@@ -185,6 +188,8 @@ def _route(args):
         return commands.cmd_speed(args.session_id), formatters.format_speed
     if cmd == "infer-atk":
         return commands.cmd_infer_atk(args.session_id, args.skill, args.damage), formatters.format_generic
+    if cmd == "decide":
+        return commands.cmd_decide(args.session_id), formatters.format_decide
     raise ValueError(f"未知命令: {cmd}")
 
 

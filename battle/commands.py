@@ -101,16 +101,6 @@ def cmd_infer_atk(session_id: str, skill_name: str, actual_damage: int) -> dict:
         "saved_to": f"enemy.confirmed_stats.{atk_field}",
     }
 
-    """结束对战。默认删除 session，加 --save 则保留。"""
-    if not ss.exists(session_id):
-        raise ValueError(f"session '{session_id}' 不存在")
-    if save:
-        return {"session_id": session_id, "action": "saved", "path": str(ss._path(session_id))}
-    ss.delete(session_id)
-    return {"session_id": session_id, "action": "deleted"}
-
-
-
 
 
 # === 我方设置 ===
@@ -774,3 +764,111 @@ def _outspeed_summary(my: dict, enemy: dict) -> str:
     if my_cur >= enemy.get("min", 0):
         return f"速度接近，敌方加速即反超"
     return f"我方落后于敌方（{my_cur} < 敌方最低 {enemy.get('min')}）"
+
+
+# ── 决策推荐 ──────────────────────────────────────────
+
+def cmd_decide(session_id: str) -> dict:
+    """枚举当前合法动作并用规则评分，返回排序后的推荐列表。"""
+    sess = ss.load(session_id)
+    my_idx = sess["active"]["my_index"]
+    enemy_idx = sess["active"]["enemy_index"]
+    if my_idx is None or enemy_idx is None:
+        raise ValueError("请先设置双方在场精灵")
+
+    my_pk = sess["my_team"][my_idx]
+    enemy_pk = sess["enemy_team"][enemy_idx] if enemy_idx < len(sess["enemy_team"]) else None
+    my_energy = my_pk.get("energy", 10)
+    boss_used = my_pk.get("boss_used", False)
+
+    # 枚举合法动作
+    actions = []
+
+    # 聚能（始终可用）
+    actions.append({"type": "charge", "label": "聚能", "energy_cost": 0})
+
+    # 4个技能
+    for skill_name in (my_pk.get("skills") or []):
+        if not skill_name:
+            continue
+        skill = core.SKILLS.get(skill_name, {})
+        cost = int(skill.get("energy_consumption") or 0)
+        if my_energy >= cost:
+            actions.append({"type": "skill", "label": skill_name, "energy_cost": cost})
+
+    # 换人
+    for i, pk in enumerate(sess["my_team"]):
+        if i != my_idx and not pk.get("fainted"):
+            actions.append({"type": "switch", "label": f"换人→{pk['pokemon']}", "switch_to": pk["pokemon"], "energy_cost": 0})
+
+    # 首领化 / 愿力冲击（互斥）
+    if not boss_used:
+        actions.append({"type": "boss_form", "label": "首领化", "energy_cost": 0})
+        actions.append({"type": "yuanli", "label": "愿力冲击", "energy_cost": 2})
+
+    # 评分
+    scored = [_score_action(a, my_pk, enemy_pk, sess) for a in actions]
+    scored.sort(key=lambda x: x["score"], reverse=True)
+    return {"actions": scored, "my_pokemon": my_pk["pokemon"], "enemy_pokemon": enemy_pk["pokemon"] if enemy_pk else "未知"}
+
+
+def _score_action(action: dict, my_pk: dict, enemy_pk: dict, sess: dict) -> dict:
+    score = 0
+    reasons = []
+    atype = action["type"]
+
+    my_hp = my_pk.get("hp_pct", 100)
+    enemy_hp = enemy_pk.get("hp_pct", 100) if enemy_pk else 100
+    my_energy = my_pk.get("energy", 10)
+
+    # 斩杀线判断（简化：用 kill_chain 结果）
+    if atype == "skill":
+        skill_name = action["label"]
+        try:
+            kc = cmd_kill_chain(sess["id"])
+            for entry in kc.get("skills", []):
+                if entry.get("skill") == skill_name and entry.get("can_kill"):
+                    score += 100
+                    reasons.append("本回合可斩杀")
+                    break
+        except Exception:
+            pass
+
+        # 能量效率：高能耗高威力 vs 低能耗
+        cost = action["energy_cost"]
+        if cost >= 5:
+            score += 10
+            reasons.append("高威力技能")
+        elif cost <= 2:
+            score += 5
+            reasons.append("低能耗技能")
+
+    # 聚能：对方无法斩杀时有价值
+    if atype == "charge":
+        if my_hp > 50:
+            score += 15
+            reasons.append("血量充足，聚能安全")
+        else:
+            score -= 10
+            reasons.append("血量低，聚能有风险")
+
+    # 换人：优势对位
+    if atype == "switch":
+        score += 20
+        reasons.append("换人调整对位")
+        if my_hp < 25:
+            score += 30
+            reasons.append("当前精灵濒死，换人保命")
+
+    # 首领化：早用收益高
+    if atype == "boss_form":
+        score += 25
+        reasons.append("首领化强化精灵")
+
+    # 愿力冲击：有能量时可用
+    if atype == "yuanli":
+        if my_energy >= 2:
+            score += 20
+            reasons.append("愿力冲击可用")
+
+    return {**action, "score": score, "reasons": reasons}
