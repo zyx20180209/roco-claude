@@ -47,6 +47,7 @@ roco-claude/
 部署后访问：
 - ⚔️ [伤害计算器](https://zyx20180209.github.io/roco-claude/apps/damage_calculator/)
 - ⚙️ [传动计算器](https://zyx20180209.github.io/roco-claude/apps/transmission_calculator/)
+- 🐛 [虫群伤害计算器](https://zyx20180209.github.io/roco-claude/apps/swarm_calculator/) — [使用说明](./apps/swarm_calculator/README.md)
 - 📋 [对战回放记录](https://zyx20180209.github.io/roco-claude/apps/replay_recorder/) — [使用说明](./apps/replay_recorder/README.md)
 
 ### 本地运行

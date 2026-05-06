@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虫群伤害计算器</title>
+<style>
+:root {
+  --bg: #f3f4f8;
+  --card: #fff;
+  --border: #e2e5ec;
+  --primary: #6366f1;
+  --primary-light: #eef2ff;
+  --danger: #ef4444;
+  --success: #10b981;
+  --warn: #f59e0b;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); padding: 16px; font-size: 14px; }
+.container { max-width: 960px; margin: 0 auto; }
+h1 { font-size: 1.3rem; margin-bottom: 4px; color: var(--text); text-align: center; }
+.subtitle { color: var(--muted); font-size: 0.85rem; text-align: center; margin-bottom: 16px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-title { font-weight: 600; color: var(--primary); font-size: 0.85rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* 攻击者 pills */
+.attacker-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill { flex: 1; min-width: 120px; background: #fff; border: 2px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.15s; text-align: center; }
+.pill:hover { border-color: var(--primary); }
+.pill.active { background: var(--primary-light); border-color: var(--primary); }
+.pill .name { font-weight: 600; font-size: 0.9rem; }
+.pill .stat { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+/* 奉献输入 */
+.dedication-row { display: flex; gap: 12px; align-items: stretch; }
+.field-large { flex: 1; }
+.field-large label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 4px; }
+.field-large input[type=number] { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; font-weight: 600; text-align: center; }
+.field-large input:focus { outline: none; border-color: var(--primary); }
+.field-hint { font-size: 0.7rem; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.tab { padding: 8px 14px; cursor: pointer; border: none; background: transparent; font-size: 0.85rem; color: var(--muted); border-bottom: 2px solid transparent; }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Form */
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.row label { font-size: 0.78rem; color: var(--muted); }
+input[type=text], input[type=number], select { background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 0.85rem; }
+input:focus, select:focus { outline: none; border-color: var(--primary); }
+button { background: var(--primary); color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 0.82rem; }
+button:hover { opacity: 0.9; }
+button.secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+button.secondary:hover { background: var(--primary-light); }
+button.danger { background: var(--danger); }
+
+/* Autocomplete */
+.suggest-wrap { position: relative; flex: 1; }
+.suggest-wrap input { width: 100%; }
+.suggest { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-radius: 4px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; box-shadow: var(--shadow); }
+.suggest.open { display: block; }
+.suggest-item { padding: 5px 10px; cursor: pointer; font-size: 0.85rem; }
+.suggest-item:hover, .suggest-item.active { background: var(--primary-light); }
+
+/* 结果 */
+.result { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-radius: 10px; padding: 16px; margin-top: 12px; }
+.result-name { font-size: 0.9rem; opacity: 0.9; margin-bottom: 6px; }
+.result-damage { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+.result-pct { font-size: 1rem; margin-top: 4px; opacity: 0.95; }
+.result-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); }
+.detail-item { font-size: 0.78rem; opacity: 0.9; }
+.detail-item .label { display: block; opacity: 0.7; font-size: 0.7rem; }
+.detail-item .val { font-weight: 600; font-size: 0.88rem; }
+.verdict { margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; background: rgba(255,255,255,0.15); }
+.verdict.kill { background: rgba(16,185,129,0.5); }
+.verdict.nokill { background: rgba(239,68,68,0.4); }
+
+/* 队伍表格 */
+.team-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.team-table th { background: var(--primary-light); padding: 6px 10px; text-align: left; font-weight: 600; font-size: 0.78rem; color: var(--primary); }
+.team-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.team-table tr.empty td { color: var(--muted); font-style: italic; }
+.team-table tr.kill td { background: rgba(16,185,129,0.08); }
+.team-table tr.partial td { background: rgba(245,158,11,0.08); }
+.team-table .pct-bar { display: inline-block; width: 40px; height: 6px; background: var(--border); border-radius: 3px; vertical-align: middle; margin-left: 4px; overflow: hidden; }
+.team-table .pct-bar > span { display: block; height: 100%; background: var(--primary); }
+
+/* 类型徽章 */
+.badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.72rem; margin-left: 4px; }
+.badge-weak3 { background: rgba(239,68,68,0.2); color: #b91c1c; }
+.badge-resist3 { background: rgba(99,102,241,0.15); color: #4f46e5; }
+.badge-1x { background: var(--border); color: var(--muted); }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal { background: #fff; border-radius: 10px; padding: 18px; max-width: 460px; width: 90%; max-height: 90vh; overflow-y: auto; }
+.modal h3 { margin-bottom: 10px; color: var(--primary); }
+.modal .row { margin-bottom: 8px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+
+/* List */
+.list-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.list-row:last-child { border-bottom: none; }
+.list-row .name { flex: 1; font-weight: 500; }
+.list-row .meta { color: var(--muted); font-size: 0.78rem; }
+
+/* 6槽位 grid */
+.team-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
+.team-slots > div { display: flex; gap: 4px; align-items: center; }
+.team-slots label { font-size: 0.75rem; color: var(--muted); min-width: 30px; }
+.team-slots select { flex: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>虫群伤害计算器</h1>
+<div class="subtitle">虫系奉献体系 · 三种攻击者预设 · 多目标管理</div>
+
+<!-- 攻击者 -->
+<div class="card">
+  <div class="card-title">攻击者</div>
+  <div class="attacker-pills" id="attacker-pills"></div>
+</div>
+
+<!-- 奉献输入 -->
+<div class="card">
+  <div class="card-title">奉献层数</div>
+  <div class="dedication-row">
+    <div class="field-large">
+      <label>威力层 (x)</label>
+      <input type="number" id="x-input" value="0" min="0" step="1">
+      <div class="field-hint">每层 +20 基础威力</div>
+    </div>
+    <div class="field-large">
+      <label>连击层 (y)</label>
+      <input type="number" id="y-input" value="0" min="0" step="1">
+      <div class="field-hint">每层 +1 连击数</div>
+    </div>
+    <div class="field-large">
+      <label>中毒层 (z)</label>
+      <input type="number" id="z-input" value="0" min="0" step="1">
+      <div class="field-hint">每次虫群施加 2z 层中毒</div>
+    </div>
+  </div>
+</div>
+
+<!-- 目标 -->
+<div class="card">
+  <div class="card-title">目标</div>
+  <div class="row" style="margin-bottom:10px">
+    <label>敌方减伤 %</label>
+    <input type="number" id="mit-input" value="0" min="0" max="99" step="1" style="width:70px">
+    <span style="font-size:0.78rem;color:var(--muted)">防御技能减伤百分比</span>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="predef">预定义</button>
+    <button class="tab" data-tab="manual">手动</button>
+    <button class="tab" data-tab="team">队伍</button>
+  </div>
+
+  <div class="tab-panel active" id="panel-predef">
+    <div class="row">
+      <select id="predef-select" style="flex:1"></select>
+      <button onclick="openTargetModal()">新建</button>
+      <button class="secondary" onclick="editSelectedTarget()">编辑</button>
+      <button class="danger" onclick="deleteSelectedTarget()">删除</button>
+    </div>
+    <div id="predef-empty" style="color:var(--muted);font-size:0.82rem;display:none">还没有预定义目标，点击"新建"添加。</div>
+  </div>
+
+  <div class="tab-panel" id="panel-manual">
+    <div class="row">
+      <label>精灵</label>
+      <div class="suggest-wrap">
+        <input type="text" id="manual-name" placeholder="输入精灵名">
+        <div class="suggest" id="manual-suggest"></div>
+      </div>
+    </div>
+    <div class="row">
+      <label>HP个体</label><input type="number" id="manual-hp-iv" value="10" min="0" max="10" style="width:50px">
+      <label>物防个体</label><input type="number" id="manual-def-iv" value="10" min="0" max="10" style="width:50px">
+      <label>性格</label>
+      <select id="manual-nature"><option value="无" selected>无</option><option value="加hp">加HP</option><option value="加def">加防御</option></select>
+      <label>物防Buff层</label><input type="number" id="manual-buff" value="0" step="1" style="width:50px">
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-team">
+    <div class="row">
+      <select id="team-select" style="flex:1"></select>
+      <button onclick="openTeamModal()">管理队伍</button>
+    </div>
+    <div id="team-empty" style="color:var(--muted);font-size:0.82rem;display:none">还没有保存的队伍，点击"管理队伍"创建。</div>
+  </div>
+</div>
+
+<!-- 结果 -->
+<div id="result-area"></div>
+
+<!-- Edit target modal -->
+<div class="modal-bg" id="target-modal-bg">
+  <div class="modal">
+    <h3 id="target-modal-title">新建目标</h3>
+    <div class="row">
+      <label>精灵</label>
+      <div class="suggest-wrap">
+        <input type="text" id="t-name" placeholder="输入精灵名">
+        <div class="suggest" id="t-suggest"></div>
+      </div>
+    </div>
+    <div class="row">
+      <label>HP个体</label><input type="number" id="t-hp-iv" value="10" min="0" max="10" style="width:60px">
+      <label>物防个体</label><input type="number" id="t-def-iv" value="10" min="0" max="10" style="width:60px">
+    </div>
+    <div class="row">
+      <label>性格</label>
+      <select id="t-nature"><option value="无" selected>无</option><option value="加hp">加HP</option><option value="加def">加防御</option></select>
+      <label>物防Buff层</label><input type="number" id="t-buff" value="0" step="1" style="width:60px">
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" onclick="closeModal('target-modal-bg')">取消</button>
+      <button onclick="saveTargetFromModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Team management modal -->
+<div class="modal-bg" id="team-modal-bg">
+  <div class="modal" style="max-width:560px">
+    <h3>管理队伍</h3>
+    <div id="team-list"></div>
+    <button onclick="newTeam()" style="margin-top:8px">+ 新建队伍</button>
+    <div id="team-edit" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="row">
+        <label>队伍名</label>
+        <input type="text" id="team-name-input" style="flex:1">
+      </div>
+      <div class="team-slots" id="team-slot-grid"></div>
+      <div class="modal-actions">
+        <button class="secondary" onclick="cancelTeamEdit()">取消</button>
+        <button onclick="saveTeamFromModal()">保存</button>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="secondary" onclick="closeModal('team-modal-bg')">关闭</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+// ────────── 常量 & 状态 ──────────
+const NATURE_MULT = { "无": 1.0, "加hp": 1.2, "加def": 1.2 };
+
+function calcStat(base, iv, nature) {
+  const mult = nature === "加def" ? 1.2 : 1.0;
+  return Math.round((Math.round(1.1 * (base + 3 * iv)) + 10) * mult) + 50;
+}
+function calcHp(base, iv, nature) {
+  const mult = nature === "加hp" ? 1.2 : 1.0;
+  return Math.round((Math.round(1.7 * (base + 3 * iv)) + 70) * mult) + 100;
+}
+const ATTACKERS = {
+  "花衣蝶":   { base: 67, iv: 0,  nature: "无", buffMult: 1.0  },
+  "陨星虫":   { base: 78, iv: 10, nature: "无", buffMult: 1.0  },
+  "女王蜂5层": { base: 54, iv: 10, nature: "无", buffMult: 1.75 },
+};
+
+let POKEMON = [], POKEMON_MAP = {};
+let TYPE_MATRIX = {};
+let targets = [], teams = [];
+let editingTargetId = null;
+let editingTeamId = null;
+let state = {
+  attacker: "陨星虫",
+  x: 0, y: 0, z: 0, mit: 0,
+  targetMode: "predef",
+  selectedTargetId: null,
+  selectedTeamId: null,
+  manualTarget: { name: "", hpIv: 10, defIv: 10, nature: "无", buffLayers: 0 },
+};
+
+// ────────── 数据加载 ──────────
+async function loadData() {
+  const [pmRes, tcRes] = await Promise.all([
+    fetch("../../data/raw/pokemon.json"),
+    fetch("../../data/raw/type_chart.json"),
+  ]);
+  const pmRaw = await pmRes.json();
+  const tcRaw = await tcRes.json();
+  POKEMON = pmRaw.map(p => ({
+    name: p.display_name,
+    attrs: p.attributes_list,
+    hp: parseInt(p.stats.hp),
+    attack: parseInt(p.stats.attack),
+    defense: parseInt(p.stats.defense),
+  }));
+  POKEMON_MAP = Object.fromEntries(POKEMON.map(p => [p.name, p]));
+  TYPE_MATRIX = tcRaw.multiplier_matrix;
+}
+
+function loadStorage() {
+  try { targets = JSON.parse(localStorage.getItem("roco_swarm_targets") || "[]"); } catch { targets = []; }
+  try { teams   = JSON.parse(localStorage.getItem("roco_swarm_teams") || "[]"); } catch { teams = []; }
+  try {
+    const ui = JSON.parse(localStorage.getItem("roco_swarm_ui") || "null");
+    if (ui) state = { ...state, ...ui, manualTarget: { ...state.manualTarget, ...(ui.manualTarget||{}) } };
+  } catch {}
+}
+
+let saveUITimer = null;
+function saveUI() {
+  clearTimeout(saveUITimer);
+  saveUITimer = setTimeout(() => {
+    localStorage.setItem("roco_swarm_ui", JSON.stringify(state));
+  }, 300);
+}
+
+function saveTargets() { localStorage.setItem("roco_swarm_targets", JSON.stringify(targets)); }
+function saveTeams() { localStorage.setItem("roco_swarm_teams", JSON.stringify(teams)); }
+function newId(prefix) { return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,5)}`; }
+
+// ────────── 伤害计算 ──────────
+function calcStat(base, iv, nature) {
+  return Math.round((Math.round(1.1 * (base + 3 * iv)) + 10) * NATURE_MULT[nature]) + 50;
+}
+function calcHp(base, iv, nature) {
+  return Math.round((Math.round(1.7 * (base + 3 * iv)) + 70) * NATURE_MULT[nature]) + 100;
+}
+
+// PVP 双属性：双弱 3x，双抗 1/3，弱抗抵消 1x，单一关系直接乘
+function getTypeMult(atkType, defAttrs) {
+  const vals = defAttrs.map(t => TYPE_MATRIX[atkType]?.[t] ?? 1);
+  if (vals.length === 1) return vals[0];
+  const [a, b] = vals;
+  if (a === 2 && b === 2) return 3;
+  if (a === 0.5 && b === 0.5) return 1/3;
+  return a * b;
+}
+
+function attackerStat(name) {
+  const a = ATTACKERS[name];
+  return Math.round(calcStat(a.base, a.iv, a.nature) * a.buffMult);
+}
+
+function resolveTarget(spec) {
+  const p = POKEMON_MAP[spec.name];
+  if (!p) return null;
+  const hpMax = calcHp(p.hp, spec.hpIv ?? 10, spec.nature ?? "无");
+  const defStat = Math.round(
+    calcStat(p.defense, spec.defIv ?? 10, spec.nature ?? "无") * (1 + (spec.buffLayers ?? 0) * 0.1)
+  );
+  return { name: spec.name, attrs: p.attrs, hpMax, defStat };
+}
+
+function computeDamage(attackerName, x, y, z, mit, target) {
+  const atk = attackerStat(attackerName);
+  const typeMult = getTypeMult("虫", target.attrs);
+  const effPower = (20 + x*20) * 1.25 * typeMult;
+  const hits = 1 + y;
+  const mitMult = 1 - (mit || 0) / 100;
+  const damage = Math.trunc(Math.round(atk * hits * effPower * mitMult * 37 / 41) / target.defStat);
+
+  const poisonLayers = 2 * z;
+  const poisonImmune = target.attrs.includes("毒");
+  const poisonTypeMult = poisonImmune ? 0 : getTypeMult("毒", target.attrs);
+  const poisonPerTurn = Math.floor(target.hpMax * 0.03 * poisonTypeMult) * poisonLayers;
+
+  const remaining = target.hpMax - damage;
+  let killAtTurn = null, killType = null;
+  if (damage >= target.hpMax) {
+    killAtTurn = 1; killType = "direct";
+  } else if (poisonPerTurn > 0 && damage + poisonPerTurn >= target.hpMax) {
+    killAtTurn = 1; killType = "direct+poison";
+  } else if (poisonPerTurn > 0 && remaining > 0) {
+    // 直伤和第1回合中毒同回合，remaining已扣除直伤，再看需要几回合中毒
+    killAtTurn = Math.ceil(remaining / poisonPerTurn); killType = "poison";
+  }
+
+  return {
+    damage, hpMax: target.hpMax,
+    pct: 100 * damage / target.hpMax,
+    poisonLayers, poisonPerTurn, killAtTurn, killType,
+    atkStat: atk, defStat: target.defStat, typeMult, effPower, hits, mitMult,
+  };
+}
+
+// ────────── UI 渲染 ──────────
+function renderAttackerPills() {
+  const html = Object.entries(ATTACKERS).map(([name]) => {
+    const stat = attackerStat(name);
+    const active = name === state.attacker ? "active" : "";
+    return `<div class="pill ${active}" onclick="setAttacker('${name}')">
+      <div class="name">${name}</div>
+      <div class="stat">攻击力 ${stat}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("attacker-pills").innerHTML = html;
+}
+
+function setAttacker(name) {
+  state.attacker = name;
+  saveUI();
+  renderAttackerPills();
+  render();
+}
+
+function renderTabs() {
+  document.querySelectorAll(".tab").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === state.targetMode);
+  });
+  document.querySelectorAll(".tab-panel").forEach(p => {
+    p.classList.toggle("active", p.id === `panel-${state.targetMode}`);
+  });
+}
+
+function renderPredefSelect() {
+  const sel = document.getElementById("predef-select");
+  if (!targets.length) {
+    sel.innerHTML = '<option value="">（无）</option>';
+    document.getElementById("predef-empty").style.display = "block";
+    return;
+  }
+  document.getElementById("predef-empty").style.display = "none";
+  sel.innerHTML = targets.map(t =>
+    `<option value="${t.id}" ${t.id===state.selectedTargetId?'selected':''}>${t.name} (${t.nature}, IV防${t.defIv}, B${t.buffLayers})</option>`
+  ).join("");
+  if (!state.selectedTargetId || !targets.find(t => t.id === state.selectedTargetId)) {
+    state.selectedTargetId = targets[0].id;
+    saveUI();
+  }
+  sel.value = state.selectedTargetId;
+}
+
+function renderManualPanel() {
+  document.getElementById("manual-name").value = state.manualTarget.name || "";
+  document.getElementById("manual-hp-iv").value = state.manualTarget.hpIv;
+  document.getElementById("manual-def-iv").value = state.manualTarget.defIv;
+  document.getElementById("manual-nature").value = state.manualTarget.nature;
+  document.getElementById("manual-buff").value = state.manualTarget.buffLayers;
+}
+
+function renderTeamSelect() {
+  const sel = document.getElementById("team-select");
+  if (!teams.length) {
+    sel.innerHTML = '<option value="">（无）</option>';
+    document.getElementById("team-empty").style.display = "block";
+    return;
+  }
+  document.getElementById("team-empty").style.display = "none";
+  sel.innerHTML = teams.map(t =>
+    `<option value="${t.id}" ${t.id===state.selectedTeamId?'selected':''}>${t.name}</option>`
+  ).join("");
+  if (!state.selectedTeamId || !teams.find(t => t.id === state.selectedTeamId)) {
+    state.selectedTeamId = teams[0].id;
+    saveUI();
+  }
+  sel.value = state.selectedTeamId;
+}
+
+function renderResult() {
+  const area = document.getElementById("result-area");
+  const x = state.x, y = state.y, z = state.z;
+
+  if (state.targetMode === "team") {
+    const team = teams.find(t => t.id === state.selectedTeamId);
+    if (!team) { area.innerHTML = ''; return; }
+    let html = `<div class="card"><div class="card-title">${team.name} · 6 只精灵伤害</div>
+      <table class="team-table"><thead><tr>
+        <th>精灵</th><th>属性</th><th>HP</th><th>克制</th><th>伤害</th><th>%</th><th>结果</th>
+      </tr></thead><tbody>`;
+    team.targetIds.forEach((tid, idx) => {
+      if (!tid) {
+        html += `<tr class="empty"><td colspan="7">— 槽位 ${idx+1} 空 —</td></tr>`;
+        return;
+      }
+      const tspec = targets.find(t => t.id === tid);
+      if (!tspec) { html += `<tr class="empty"><td colspan="7">— 已删除 —</td></tr>`; return; }
+      const tg = resolveTarget(tspec);
+      if (!tg) { html += `<tr class="empty"><td colspan="7">${tspec.name}（数据缺失）</td></tr>`; return; }
+      const r = computeDamage(state.attacker, x, y, z, state.mit, tg);
+      const rowClass = r.killAtTurn === 1 ? 'kill' : (r.killAtTurn ? 'partial' : '');
+      const verdict = r.killType === 'direct' ? '✅ 直伤斩杀' :
+                      r.killType === 'direct+poison' ? '✅ 直伤+毒斩杀' :
+                      r.killAtTurn ? `🟡 第${r.killAtTurn}回合末（毒）` : '❌ 无法斩杀';
+      html += `<tr class="${rowClass}"><td>${tspec.name}</td><td>${tg.attrs.join('/')}</td>
+        <td>${r.hpMax}</td>
+        <td>${typeMultBadge(r.typeMult)}</td>
+        <td>${r.damage}</td>
+        <td>${r.pct.toFixed(0)}%<span class="pct-bar"><span style="width:${Math.min(100,r.pct)}%"></span></span></td>
+        <td>${verdict}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    area.innerHTML = html;
+    return;
+  }
+
+  // 单目标
+  let spec = null;
+  if (state.targetMode === "predef") {
+    spec = targets.find(t => t.id === state.selectedTargetId);
+  } else if (state.targetMode === "manual") {
+    spec = state.manualTarget;
+  }
+  if (!spec || !spec.name || !POKEMON_MAP[spec.name]) {
+    area.innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">请选择或填写有效的目标精灵</div>';
+    return;
+  }
+  const tg = resolveTarget(spec);
+  if (!tg) { area.innerHTML = ''; return; }
+  const r = computeDamage(state.attacker, x, y, z, state.mit, tg);
+  const mitLabel = state.mit > 0 ? `（减伤${state.mit}%后）` : '';
+  const verdictClass = r.killAtTurn === 1 ? 'kill' : (r.killAtTurn ? '' : 'nokill');
+  const verdictText = r.killType === 'direct' ? `✅ 直伤斩杀${mitLabel}（溢出 ${r.damage - r.hpMax}）` :
+                      r.killType === 'direct+poison' ? `✅ 直伤+回合末中毒斩杀${mitLabel}（直伤 ${r.damage}，中毒 ${r.poisonPerTurn}）` :
+                      r.killAtTurn ? `🟡 第 ${r.killAtTurn} 回合末中毒斩杀${mitLabel}（直伤 ${r.damage} + ${r.killAtTurn} 次中毒 × ${r.poisonPerTurn}）` :
+                                     `❌ 无法斩杀${mitLabel}（剩余 ${r.hpMax - r.damage}）`;
+  const poisonPct = r.poisonPerTurn > 0 ? ` + 中毒 ${(r.poisonPerTurn/r.hpMax*100).toFixed(1)}%/回合` : '';
+  area.innerHTML = `<div class="result">
+    <div class="result-name">${spec.name} · ${tg.attrs.join('/')} · HP ${tg.hpMax}</div>
+    <div class="result-damage">${r.damage}</div>
+    <div class="result-pct">${r.pct.toFixed(1)}%${poisonPct}${typeMultBadge(r.typeMult)}</div>
+    <div class="result-detail">
+      <div class="detail-item"><span class="label">攻击力</span><span class="val">${r.atkStat}</span></div>
+      <div class="detail-item"><span class="label">防御力</span><span class="val">${r.defStat}</span></div>
+      <div class="detail-item"><span class="label">有效威力</span><span class="val">${r.effPower.toFixed(1)}</span></div>
+      <div class="detail-item"><span class="label">连击数</span><span class="val">${r.hits}</span></div>
+      <div class="detail-item"><span class="label">减伤</span><span class="val">${state.mit}%</span></div>
+      <div class="detail-item"><span class="label">中毒层</span><span class="val">${r.poisonLayers}</span></div>
+      <div class="detail-item"><span class="label">中毒/回合</span><span class="val">${r.poisonPerTurn} (${(r.poisonPerTurn/r.hpMax*100).toFixed(1)}%)</span></div>
+    </div>
+    <div class="verdict ${verdictClass}">${verdictText}</div>
+  </div>`;
+}
+
+function typeMultBadge(m) {
+  if (m === 3) return '<span class="badge badge-weak3">×3 双弱</span>';
+  if (m > 1.99) return `<span class="badge badge-weak3">×${m}</span>`;
+  if (Math.abs(m - 1/3) < 0.01) return '<span class="badge badge-resist3">×1/3 双抗</span>';
+  if (m < 1) return `<span class="badge badge-resist3">×${m.toFixed(2)}</span>`;
+  return '<span class="badge badge-1x">×1</span>';
+}
+
+function render() {
+  renderTabs();
+  renderPredefSelect();
+  renderManualPanel();
+  renderTeamSelect();
+  renderResult();
+}
+
+// ────────── Autocomplete ──────────
+function setupAutocomplete(inputId, suggestId, onSelect) {
+  const input = document.getElementById(inputId);
+  const suggest = document.getElementById(suggestId);
+  let activeIdx = -1;
+  function close() { suggest.classList.remove("open"); activeIdx = -1; }
+  input.addEventListener("input", () => {
+    const v = input.value.trim();
+    if (!v) { close(); return; }
+    const items = POKEMON.filter(p => p.name.includes(v)).slice(0, 8);
+    if (!items.length) { close(); return; }
+    suggest.innerHTML = items.map((p, i) =>
+      `<div class="suggest-item" data-name="${p.name}">${p.name} (${p.attrs.join('/')})</div>`
+    ).join("");
+    suggest.classList.add("open");
+    activeIdx = -1;
+    suggest.querySelectorAll(".suggest-item").forEach(el => {
+      el.addEventListener("click", () => {
+        input.value = el.dataset.name;
+        close();
+        onSelect(el.dataset.name);
+      });
+    });
+  });
+  input.addEventListener("blur", () => setTimeout(close, 150));
+  input.addEventListener("keydown", e => {
+    const items = suggest.querySelectorAll(".suggest-item");
+    if (e.key === "ArrowDown") { activeIdx = Math.min(activeIdx+1, items.length-1); items.forEach((el,i)=>el.classList.toggle("active",i===activeIdx)); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { activeIdx = Math.max(activeIdx-1, 0); items.forEach((el,i)=>el.classList.toggle("active",i===activeIdx)); e.preventDefault(); }
+    else if (e.key === "Enter" && activeIdx >= 0) { items[activeIdx].click(); e.preventDefault(); }
+    else if (e.key === "Escape") close();
+  });
+}
+
+// ────────── 目标 modal ──────────
+function openTargetModal(id) {
+  editingTargetId = id || null;
+  const t = id ? targets.find(x => x.id === id) : null;
+  document.getElementById("target-modal-title").textContent = t ? "编辑目标" : "新建目标";
+  document.getElementById("t-name").value = t ? t.name : "";
+  document.getElementById("t-hp-iv").value = t ? t.hpIv : 10;
+  document.getElementById("t-def-iv").value = t ? t.defIv : 10;
+  document.getElementById("t-nature").value = t ? t.nature : "无";
+  document.getElementById("t-buff").value = t ? t.buffLayers : 0;
+  document.getElementById("target-modal-bg").classList.add("open");
+}
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+function saveTargetFromModal() {
+  const name = document.getElementById("t-name").value.trim();
+  if (!name || !POKEMON_MAP[name]) { alert("请输入有效的精灵名"); return; }
+  const data = {
+    name,
+    hpIv: parseInt(document.getElementById("t-hp-iv").value)||0,
+    defIv: parseInt(document.getElementById("t-def-iv").value)||0,
+    nature: document.getElementById("t-nature").value,
+    buffLayers: parseInt(document.getElementById("t-buff").value)||0,
+  };
+  if (editingTargetId) {
+    const t = targets.find(x => x.id === editingTargetId);
+    Object.assign(t, data);
+  } else {
+    targets.push({ id: newId("tgt"), ...data });
+    state.selectedTargetId = targets[targets.length-1].id;
+  }
+  saveTargets();
+  saveUI();
+  closeModal("target-modal-bg");
+  render();
+}
+function editSelectedTarget() {
+  if (!state.selectedTargetId) return;
+  openTargetModal(state.selectedTargetId);
+}
+function deleteSelectedTarget() {
+  if (!state.selectedTargetId) return;
+  if (!confirm("确认删除该目标？相关队伍中的引用也会清空。")) return;
+  const id = state.selectedTargetId;
+  targets = targets.filter(t => t.id !== id);
+  teams.forEach(team => { team.targetIds = team.targetIds.map(tid => tid === id ? null : tid); });
+  state.selectedTargetId = targets[0]?.id || null;
+  saveTargets(); saveTeams(); saveUI();
+  render();
+}
+
+// ────────── Team modal ──────────
+function openTeamModal() {
+  editingTeamId = null;
+  document.getElementById("team-edit").style.display = "none";
+  renderTeamList();
+  document.getElementById("team-modal-bg").classList.add("open");
+}
+function renderTeamList() {
+  const html = teams.length ? teams.map(t =>
+    `<div class="list-row">
+      <span class="name">${t.name}</span>
+      <span class="meta">${t.targetIds.filter(Boolean).length}/6</span>
+      <button class="secondary" onclick="editTeam('${t.id}')">编辑</button>
+      <button class="danger" onclick="deleteTeam('${t.id}')">删除</button>
+    </div>`
+  ).join("") : '<div style="color:var(--muted);font-size:0.82rem">还没有队伍</div>';
+  document.getElementById("team-list").innerHTML = html;
+}
+function newTeam() {
+  editingTeamId = null;
+  document.getElementById("team-name-input").value = "";
+  renderTeamSlotGrid([null,null,null,null,null,null]);
+  document.getElementById("team-edit").style.display = "block";
+}
+function editTeam(id) {
+  editingTeamId = id;
+  const t = teams.find(x => x.id === id);
+  document.getElementById("team-name-input").value = t.name;
+  renderTeamSlotGrid(t.targetIds);
+  document.getElementById("team-edit").style.display = "block";
+}
+function renderTeamSlotGrid(slots) {
+  const html = slots.map((tid, i) => {
+    const opts = '<option value="">（空）</option>' +
+      targets.map(t => `<option value="${t.id}" ${t.id===tid?'selected':''}>${t.name}</option>`).join("");
+    return `<div><label>#${i+1}</label><select data-slot="${i}">${opts}</select></div>`;
+  }).join("");
+  document.getElementById("team-slot-grid").innerHTML = html;
+}
+function saveTeamFromModal() {
+  const name = document.getElementById("team-name-input").value.trim();
+  if (!name) { alert("请输入队伍名"); return; }
+  const slots = Array.from(document.querySelectorAll("#team-slot-grid select"))
+    .map(s => s.value || null);
+  if (editingTeamId) {
+    const t = teams.find(x => x.id === editingTeamId);
+    t.name = name; t.targetIds = slots;
+  } else {
+    teams.push({ id: newId("team"), name, targetIds: slots });
+    state.selectedTeamId = teams[teams.length-1].id;
+  }
+  saveTeams(); saveUI();
+  document.getElementById("team-edit").style.display = "none";
+  renderTeamList();
+  render();
+}
+function cancelTeamEdit() {
+  document.getElementById("team-edit").style.display = "none";
+}
+function deleteTeam(id) {
+  if (!confirm("确认删除此队伍？")) return;
+  teams = teams.filter(t => t.id !== id);
+  if (state.selectedTeamId === id) state.selectedTeamId = teams[0]?.id || null;
+  saveTeams(); saveUI();
+  renderTeamList();
+  render();
+}
+
+// ────────── 事件绑定 ──────────
+function wireEvents() {
+  document.querySelectorAll(".tab").forEach(b => {
+    b.addEventListener("click", () => {
+      state.targetMode = b.dataset.tab;
+      saveUI();
+      render();
+    });
+  });
+  ["x","y","z","mit"].forEach(key => {
+    document.getElementById(`${key}-input`).addEventListener("input", e => {
+      state[key] = Math.max(0, parseInt(e.target.value) || 0);
+      saveUI();
+      renderResult();
+    });
+  });
+  document.getElementById("predef-select").addEventListener("change", e => {
+    state.selectedTargetId = e.target.value;
+    saveUI();
+    renderResult();
+  });
+  document.getElementById("team-select").addEventListener("change", e => {
+    state.selectedTeamId = e.target.value;
+    saveUI();
+    renderResult();
+  });
+  // 手动 tab 输入
+  ["manual-hp-iv","manual-def-iv","manual-buff"].forEach(id => {
+    document.getElementById(id).addEventListener("input", e => {
+      const key = id.replace("manual-","").replace("-iv","Iv");
+      const k = key === "buff" ? "buffLayers" : (key === "hpIv" ? "hpIv" : "defIv");
+      state.manualTarget[k] = parseInt(e.target.value) || 0;
+      saveUI(); renderResult();
+    });
+  });
+  document.getElementById("manual-nature").addEventListener("change", e => {
+    state.manualTarget.nature = e.target.value;
+    saveUI(); renderResult();
+  });
+  setupAutocomplete("manual-name", "manual-suggest", name => {
+    state.manualTarget.name = name;
+    saveUI(); renderResult();
+  });
+  document.getElementById("manual-name").addEventListener("input", e => {
+    state.manualTarget.name = e.target.value;
+    saveUI(); renderResult();
+  });
+  setupAutocomplete("t-name", "t-suggest", () => {});
+  // 关闭 modal 点背景
+  document.querySelectorAll(".modal-bg").forEach(bg => {
+    bg.addEventListener("click", e => { if (e.target === bg) bg.classList.remove("open"); });
+  });
+  // 输入框初始值
+  document.getElementById("x-input").value = state.x;
+  document.getElementById("y-input").value = state.y;
+  document.getElementById("z-input").value = state.z;
+  document.getElementById("mit-input").value = state.mit || 0;
+}
+
+// ────────── 启动 ──────────
+(async function main() {
+  try {
+    await loadData();
+  } catch (e) {
+    document.body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">数据加载失败。需要通过 HTTP 服务访问（运行 ./apps/serve.sh）</div>';
+    return;
+  }
+  loadStorage();
+  wireEvents();
+  renderAttackerPills();
+  render();
+})();
+</script>
+</body>
+</html>
