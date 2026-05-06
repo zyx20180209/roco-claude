@@ -429,9 +429,13 @@ function renderPredefSelect() {
     return;
   }
   document.getElementById("predef-empty").style.display = "none";
-  sel.innerHTML = targets.map(t =>
-    `<option value="${t.id}" ${t.id===state.selectedTargetId?'selected':''}>${t.name} (${t.nature}, IV防${t.defIv}, B${t.buffLayers})</option>`
-  ).join("");
+  sel.innerHTML = targets.map(t => {
+    const natureLbl = t.nature === '无' ? '无性格' : t.nature === '加hp' ? '加HP性格' : '加防御性格';
+    const hpLbl = t.hpIv === 10 ? 'HP满个体' : `HP个体${t.hpIv}`;
+    const defLbl = t.defIv === 10 ? '防御满个体' : `防御个体${t.defIv}`;
+    const buffLbl = t.buffLayers > 0 ? ` +${t.buffLayers}层防御Buff` : '';
+    return `<option value="${t.id}" ${t.id===state.selectedTargetId?'selected':''}>${t.name}（${natureLbl}，${hpLbl}，${defLbl}${buffLbl}）</option>`;
+  }).join("");
   if (!state.selectedTargetId || !targets.find(t => t.id === state.selectedTargetId)) {
     state.selectedTargetId = targets[0].id;
     saveUI();
