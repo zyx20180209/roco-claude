@@ -116,12 +116,45 @@ button.danger { background: var(--danger); }
 .team-slots > div { display: flex; gap: 4px; align-items: center; }
 .team-slots label { font-size: 0.75rem; color: var(--muted); min-width: 30px; }
 .team-slots select { flex: 1; }
+
+/* 页面级 tab */
+.page-tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 2px solid var(--border); }
+.page-tab { padding: 10px 20px; cursor: pointer; border: none; background: transparent; font-size: 0.95rem; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; font-weight: 500; border-radius: 0; }
+.page-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+.page-panel { display: none; }
+.page-panel.active { display: block; }
+
+/* 茎叶图 */
+.stem-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.stem-label { min-width: 56px; text-align: right; font-weight: 700; font-size: 0.95rem; color: var(--primary); padding-top: 6px; flex-shrink: 0; }
+.stem-divider { width: 2px; background: var(--border); align-self: stretch; flex-shrink: 0; }
+.stem-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+.pkmn-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; line-height: 1.5; min-width: 110px; position: relative; }
+.pkmn-card .card-name { font-weight: 600; color: var(--text); }
+.pkmn-card .card-cfg { color: var(--muted); font-size: 0.72rem; }
+.pkmn-card .card-tag { display: inline-block; font-size: 0.68rem; padding: 1px 5px; border-radius: 3px; margin-top: 2px; font-weight: 600; }
+.tag-one { background: rgba(16,185,129,0.15); color: #065f46; }
+.tag-two { background: rgba(245,158,11,0.15); color: #92400e; }
+.pkmn-card .card-del { position: absolute; top: 3px; right: 4px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.75rem; padding: 0 2px; line-height: 1; }
+.pkmn-card .card-del:hover { color: var(--danger); }
+.pkmn-card.highlight { background: #fef3c7; border-color: var(--warn); box-shadow: 0 0 0 2px rgba(245,158,11,0.3); }
+.stem-row.highlight .stem-label { color: var(--warn); transform: scale(1.15); }
+.stem-row.highlight .stem-divider { background: var(--warn); width: 3px; }
 </style>
 </head>
 <body>
 <div class="container">
 <h1>虫群伤害计算器</h1>
 <div class="subtitle">虫系奉献体系 · 三种攻击者预设 · 多目标管理</div>
+
+<!-- 页面级 tab -->
+<div class="page-tabs">
+  <button class="page-tab active" data-page="calc">伤害计算器</button>
+  <button class="page-tab" data-page="thresh">阈值速查表</button>
+</div>
+
+<!-- ============ 计算器页面 ============ -->
+<div class="page-panel active" id="page-calc">
 
 <!-- 攻击者 -->
 <div class="card">
@@ -204,6 +237,59 @@ button.danger { background: var(--danger); }
 <!-- 结果 -->
 <div id="result-area"></div>
 
+</div><!-- /page-calc -->
+
+<!-- ============ 阈值速查表页面 ============ -->
+<div class="page-panel" id="page-thresh">
+  <div class="card">
+    <div class="card-title">添加目标精灵</div>
+    <div class="row">
+      <div class="suggest-wrap" style="flex:2">
+        <input type="text" id="th-name" placeholder="输入精灵名（自动补全）">
+        <div class="suggest" id="th-suggest"></div>
+      </div>
+      <label>HP个体</label><input type="number" id="th-hp-iv" value="10" min="0" max="10" style="width:50px">
+      <label>物防个体</label><input type="number" id="th-def-iv" value="10" min="0" max="10" style="width:50px">
+      <label>性格</label>
+      <select id="th-nature"><option value="无" selected>无</option><option value="加hp">加HP</option><option value="加def">加防御</option></select>
+      <label>物防Buff</label><input type="number" id="th-buff" value="0" step="1" style="width:50px">
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="checkbox" id="th-tworound"> 含两击
+      </label>
+      <button onclick="addThreshTarget()">添加</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:8px">
+      <div class="card-title" style="margin:0">奉献阈值图</div>
+      <span style="flex:1"></span>
+      <label>收割位</label>
+      <select id="th-attacker">
+        <option value="陨星虫">陨星虫</option>
+        <option value="女王蜂5层" selected>女王蜂5层</option>
+        <option value="花衣蝶">花衣蝶</option>
+      </select>
+      <span style="font-size:0.78rem;color:var(--muted);margin-left:8px">共 <span id="th-count">0</span> 只</span>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="suggest-wrap" style="flex:1">
+        <input type="text" id="th-search" placeholder="🔍 搜索表中精灵（高亮所在档位）">
+        <div class="suggest" id="th-search-suggest"></div>
+      </div>
+      <button class="secondary" onclick="clearThreshSearch()">清除</button>
+      <button class="secondary" onclick="exportTargets()">导出</button>
+      <label style="cursor:pointer"><button class="secondary" onclick="document.getElementById('import-file').click()">导入</button></label>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importTargets(this)">
+      <button class="secondary" onclick="resetToDefault()">恢复默认</button>
+    </div>
+    <div id="th-stem"></div>
+    <div id="th-empty" style="color:var(--muted);font-size:0.85rem;text-align:center;padding:20px;display:none">
+      还没有添加目标。输入精灵名后点"添加"。
+    </div>
+  </div>
+</div><!-- /page-thresh -->
+
 <!-- Edit target modal -->
 <div class="modal-bg" id="target-modal-bg">
   <div class="modal">
@@ -274,6 +360,7 @@ const ATTACKERS = {
 };
 
 let POKEMON = [], POKEMON_MAP = {};
+let DEFAULT_TARGETS = [];
 let TYPE_MATRIX = {};
 let targets = [], teams = [];
 let editingTargetId = null;
@@ -289,12 +376,14 @@ let state = {
 
 // ────────── 数据加载 ──────────
 async function loadData() {
-  const [pmRes, tcRes] = await Promise.all([
+  const [pmRes, tcRes, dtRes] = await Promise.all([
     fetch("../../data/raw/pokemon.json"),
     fetch("../../data/raw/type_chart.json"),
+    fetch("default_targets.json"),
   ]);
   const pmRaw = await pmRes.json();
   const tcRaw = await tcRes.json();
+  DEFAULT_TARGETS = await dtRes.json();
   POKEMON = pmRaw.map(p => ({
     name: p.display_name,
     attrs: p.attributes_list,
@@ -308,6 +397,7 @@ async function loadData() {
 
 function loadStorage() {
   try { targets = JSON.parse(localStorage.getItem("roco_swarm_targets") || "[]"); } catch { targets = []; }
+  if (!targets.length) targets = DEFAULT_TARGETS.map(t => ({ ...t }));
   try { teams   = JSON.parse(localStorage.getItem("roco_swarm_teams") || "[]"); } catch { teams = []; }
   try {
     const ui = JSON.parse(localStorage.getItem("roco_swarm_ui") || "null");
@@ -771,6 +861,233 @@ function wireEvents() {
   document.getElementById("mit-input").value = state.mit || 0;
 }
 
+// ────────── 页面级 tab ──────────
+function wirePageTabs() {
+  document.querySelectorAll(".page-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".page-tab").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".page-panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("page-" + btn.dataset.page).classList.add("active");
+      if (btn.dataset.page === "thresh") renderThreshTable();
+    });
+  });
+}
+
+// ────────── 阈值表 ──────────
+function findMinCombo(atkStat, hpMax, defStat, typeMult, rounds) {
+  for (let total = 0; total <= 30; total++) {
+    for (let x = 0; x <= total; x++) {
+      const y = total - x;
+      const ep = (20 + x * 20) * 1.25 * typeMult;
+      const d = Math.trunc(Math.round(atkStat * (1 + y) * ep * 37 / 41) / defStat);
+      if (d * rounds >= hpMax) return { total, x, y };
+    }
+  }
+  return null;
+}
+
+// 茎叶图档位序列：3+3=6, 4+3=7, 4+4=8, 5+4=9, 5+5=10, 6+5=11, 6+6=12...
+const MIN_TOTAL = 6; // 3+3 是底线
+function stemLevels() {
+  const levels = [];
+  for (let base = 3; base <= 15; base++) {
+    levels.push({ total: base * 2 - 1, x: base, y: base - 1, label: `${base}+${base-1}` });
+    levels.push({ total: base * 2,     x: base, y: base,     label: `${base}+${base}` });
+  }
+  // 移除 3+2=5（base=3 时第一项），从 3+3=6 开始
+  return levels.filter(l => l.total >= MIN_TOTAL);
+}
+
+let threshSearchName = "";
+
+function renderThreshTable() {
+  const stem = document.getElementById("th-stem");
+  const empty = document.getElementById("th-empty");
+  const count = document.getElementById("th-count");
+  const atk = attackerStat(document.getElementById("th-attacker").value);
+
+  count.textContent = targets.length;
+  if (!targets.length) {
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+  }
+
+  // 计算每只精灵的一击/两击最小总层数
+  const items = targets.map(t => {
+    const p = POKEMON_MAP[t.name];
+    if (!p) return null;
+    const hpMax = calcHp(p.hp, t.hpIv ?? 10, t.nature ?? "无");
+    const defStat = Math.round(calcStat(p.defense, t.defIv ?? 10, t.nature ?? "无") * (1 + (t.buffLayers ?? 0) * 0.1));
+    const tm = getTypeMult("虫", p.attrs);
+    const one = findMinCombo(atk, hpMax, defStat, tm, 1);
+    const two = t.twoRound ? findMinCombo(atk, hpMax, defStat, tm, 2) : null;
+    const natureLbl = t.nature === "加hp" ? "加HP" : t.nature === "加def" ? "加防" : "无性格";
+    const cfg = `HP${t.hpIv ?? 10} 防${t.defIv ?? 10} ${natureLbl}${t.buffLayers ? " 防Buff+"+t.buffLayers : ""}`;
+    return { t, cfg, one, two };
+  }).filter(Boolean);
+
+  // 按档位分桶；低于 MIN_TOTAL 的塞进 MIN_TOTAL
+  const buckets = {};
+  items.forEach(item => {
+    if (item.one) {
+      const k = Math.max(item.one.total, MIN_TOTAL);
+      (buckets[k] = buckets[k] || []).push({ ...item, tag: "one" });
+    }
+    if (item.two && (!item.one || item.two.total < item.one.total)) {
+      const k = Math.max(item.two.total, MIN_TOTAL);
+      (buckets[k] = buckets[k] || []).push({ ...item, tag: "two" });
+    }
+  });
+
+  // 必显档位：3+3=6 到 5+5=10
+  const REQUIRED_MIN = 6, REQUIRED_MAX = 10;
+  const usedTotals = new Set(Object.keys(buckets).map(Number));
+  for (let n = REQUIRED_MIN; n <= REQUIRED_MAX; n++) usedTotals.add(n);
+
+  // 找到搜索匹配的档位（最低的一档；如同时有一击和两击，取两击档位，因为它更小）
+  const search = threshSearchName.trim();
+  const highlightTotals = new Set();
+  if (search) {
+    items.forEach(item => {
+      if (item.t.name === search) {
+        if (item.two && (!item.one || item.two.total < item.one.total)) {
+          highlightTotals.add(Math.max(item.two.total, MIN_TOTAL));
+        }
+        if (item.one) {
+          highlightTotals.add(Math.max(item.one.total, MIN_TOTAL));
+        }
+      }
+    });
+  }
+
+  // 从高到低排序（最下面是 3+3）
+  const sortedTotals = Array.from(usedTotals).sort((a, b) => b - a);
+  const levels = stemLevels();
+
+  stem.innerHTML = sortedTotals.map(total => {
+    const lv = levels.find(l => l.total === total);
+    const label = lv ? lv.label : `?+${total}`;
+    const bucket = buckets[total] || [];
+    const cards = bucket.map(({ t, cfg, tag }) => {
+      const isMatch = search && t.name === search;
+      return `<div class="pkmn-card ${isMatch ? 'highlight' : ''}">
+        <button class="card-del" onclick="deleteThreshTarget('${t.id}')" title="删除">×</button>
+        <div class="card-name">${t.name}</div>
+        <div class="card-cfg">${cfg}</div>
+        <span class="card-tag ${tag === 'one' ? 'tag-one' : 'tag-two'}">${tag === 'one' ? '一击必杀' : '两击击杀'}</span>
+      </div>`;
+    }).join("");
+    const rowHL = highlightTotals.has(total) ? 'highlight' : '';
+    return `<div class="stem-row ${rowHL}">
+      <div class="stem-label">${label}</div>
+      <div class="stem-divider"></div>
+      <div class="stem-cards">${cards}</div>
+    </div>`;
+  }).join("");
+}
+
+function addThreshTarget() {
+  const name = document.getElementById("th-name").value.trim();
+  if (!name || !POKEMON_MAP[name]) { alert("请输入有效的精灵名"); return; }
+  targets.push({
+    id: newId("tgt"),
+    name,
+    hpIv: parseInt(document.getElementById("th-hp-iv").value) || 0,
+    defIv: parseInt(document.getElementById("th-def-iv").value) || 0,
+    nature: document.getElementById("th-nature").value,
+    buffLayers: parseInt(document.getElementById("th-buff").value) || 0,
+    twoRound: document.getElementById("th-tworound").checked,
+  });
+  saveTargets();
+  document.getElementById("th-name").value = "";
+  renderThreshTable();
+  renderPredefSelect();
+}
+
+function deleteThreshTarget(id) {
+  targets = targets.filter(t => t.id !== id);
+  teams.forEach(team => { team.targetIds = team.targetIds.map(tid => tid === id ? null : tid); });
+  saveTargets(); saveTeams();
+  renderThreshTable();
+  renderPredefSelect();
+}
+
+function wireThreshEvents() {
+  setupAutocomplete("th-name", "th-suggest", name => {
+    document.getElementById("th-name").value = name;
+  });
+  document.getElementById("th-attacker").addEventListener("change", renderThreshTable);
+
+  // 搜索框：仅在已添加的目标中匹配
+  const searchInput = document.getElementById("th-search");
+  const searchSuggest = document.getElementById("th-search-suggest");
+  searchInput.addEventListener("input", () => {
+    const v = searchInput.value.trim();
+    threshSearchName = "";
+    if (!v) { searchSuggest.classList.remove("open"); renderThreshTable(); return; }
+    const items = targets.filter(t => t.name.includes(v)).slice(0, 8);
+    if (!items.length) { searchSuggest.classList.remove("open"); renderThreshTable(); return; }
+    searchSuggest.innerHTML = items.map(t =>
+      `<div class="suggest-item" data-name="${t.name}">${t.name}</div>`
+    ).join("");
+    searchSuggest.classList.add("open");
+    searchSuggest.querySelectorAll(".suggest-item").forEach(el => {
+      el.addEventListener("click", () => {
+        searchInput.value = el.dataset.name;
+        threshSearchName = el.dataset.name;
+        searchSuggest.classList.remove("open");
+        renderThreshTable();
+      });
+    });
+    // 输入时如果完全匹配某个名称，直接高亮
+    const exact = targets.find(t => t.name === v);
+    if (exact) { threshSearchName = exact.name; renderThreshTable(); }
+  });
+  searchInput.addEventListener("blur", () => setTimeout(() => searchSuggest.classList.remove("open"), 150));
+}
+
+function clearThreshSearch() {
+  document.getElementById("th-search").value = "";
+  threshSearchName = "";
+  renderThreshTable();
+}
+
+function exportTargets() {
+  const blob = new Blob([JSON.stringify(targets, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "swarm_targets.json";
+  a.click();
+}
+
+function importTargets(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error();
+      targets = data;
+      saveTargets();
+      renderThreshTable();
+      renderPredefSelect();
+    } catch { alert("JSON 格式错误"); }
+    input.value = "";
+  };
+  reader.readAsText(file);
+}
+
+function resetToDefault() {
+  if (!confirm("恢复默认数据将覆盖当前所有精灵，确认？")) return;
+  targets = DEFAULT_TARGETS.map(t => ({ ...t }));
+  saveTargets();
+  renderThreshTable();
+  renderPredefSelect();
+}
+
 // ────────── 启动 ──────────
 (async function main() {
   try {
@@ -781,6 +1098,8 @@ function wireEvents() {
   }
   loadStorage();
   wireEvents();
+  wirePageTabs();
+  wireThreshEvents();
   renderAttackerPills();
   render();
 })();

@@ -5,3 +5,4 @@ data/archive/
 __pycache__/
 .DS_Store
 temp.py
+bug-team-assistant/
