@@ -68,7 +68,7 @@ class DataRepo:
         """PVP属性倍率规则：
         - 任一防守属性免疫 → 0
         - 单属性：直接取倍率
-        - 双属性：双克=3x，双抗=1/3x，一克一抗=1x，单克=2x，单抗=0.5x
+        - 双属性：双克=3x，双抗=1/4x，一克一抗=1x，单克=2x，单抗=0.5x
         """
         chart = self.type_chart.get(attacking_type, {})
         mults = [chart.get(dt, 1.0) for dt in defending_types]
@@ -79,14 +79,14 @@ class DataRepo:
         eff = sum(1 for m in mults if m > 1)
         resist = sum(1 for m in mults if m < 1)
         if eff == 2: return 3.0
-        if resist == 2: return 1 / 3
+        if resist == 2: return 0.25
         if eff == 1 and resist == 1: return 1.0
         if eff == 1: return 2.0
         if resist == 1: return 0.5
         return 1.0
 
     def compute_defense_profile(self, defending_types: list[str]) -> dict:
-        """计算精灵的防御属性分布（PVP规则：双克3x，双抗1/3）"""
+        """计算精灵的防御属性分布（PVP规则：双克3x，双抗1/4）"""
         takes_3x, takes_2x, takes_half, takes_third, immune = [], [], [], [], []
         all_types = list(self.type_chart.keys())
         for atk_type in all_types:
@@ -97,7 +97,7 @@ class DataRepo:
                 takes_3x.append(atk_type)
             elif mult == 2:
                 takes_2x.append(atk_type)
-            elif abs(mult - 1/3) < 0.01:
+            elif abs(mult - 0.25) < 0.01:
                 takes_third.append(atk_type)
             elif mult == 0.5:
                 takes_half.append(atk_type)

@@ -117,7 +117,7 @@ def type_effectiveness(atk_type: str, def_attrs: list) -> float:
     eff = sum(1 for m in mults if m > 1)
     res = sum(1 for m in mults if m < 1)
     if eff == 2: return 3.0
-    if res == 2: return 1 / 3
+    if res == 2: return 0.25
     if eff == 1 and res == 1: return 1.0
     if eff == 1: return 2.0
     if res == 1: return 0.5

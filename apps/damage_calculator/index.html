@@ -356,7 +356,7 @@ function getTypeMult(atkType, defAttrs) {
   const eff = mults.filter(m => m > 1).length;
   const res = mults.filter(m => m < 1).length;
   if (eff === 2) return 3;
-  if (res === 2) return 1/3;
+  if (res === 2) return 0.25;
   if (eff === 1 && res === 1) return 1;
   if (eff === 1) return 2;
   if (res === 1) return 0.5;

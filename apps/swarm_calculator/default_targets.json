@@ -1,21 +1,227 @@
 [
-  {"id":"dt_01","name":"贝古斯","hpIv":10,"defIv":10,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_02","name":"贝古斯","hpIv":10,"defIv":10,"nature":"加hp","buffLayers":0,"twoRound":true},
-  {"id":"dt_03","name":"音速犬","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_04","name":"帕帕斯卡","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_05","name":"烈火战神","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_06","name":"星光狮星光能量的样子","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_07","name":"圣剑骑士","hpIv":10,"defIv":10,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_08","name":"圣剑-X","hpIv":10,"defIv":10,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_09","name":"圣剑-X","hpIv":10,"defIv":10,"nature":"加hp","buffLayers":0,"twoRound":true},
-  {"id":"dt_10","name":"寒音蛇","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_11","name":"翠顶夫人","hpIv":10,"defIv":10,"nature":"加hp","buffLayers":0,"twoRound":false},
-  {"id":"dt_12","name":"翠顶夫人","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_13","name":"权杖-V","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_14","name":"圣羽翼王","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_15","name":"寂灭骨龙","hpIv":10,"defIv":10,"nature":"加hp","buffLayers":0,"twoRound":false},
-  {"id":"dt_16","name":"棋契陛下","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_17","name":"彩虹独角兽","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_18","name":"岚鸟冬天的样子","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false},
-  {"id":"dt_19","name":"瞌睡王","hpIv":10,"defIv":0,"nature":"无","buffLayers":0,"twoRound":false}
+  {
+    "id": "dt_01",
+    "name": "贝古斯",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_02",
+    "name": "贝古斯",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "加hp",
+    "buffLayers": 0,
+    "twoRound": true
+  },
+  {
+    "id": "dt_03",
+    "name": "音速犬",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_04",
+    "name": "帕帕斯卡",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_05",
+    "name": "烈火战神",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_06",
+    "name": "星光狮星光能量的样子",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_07",
+    "name": "圣剑骑士",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_08",
+    "name": "圣剑-X",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_09",
+    "name": "圣剑-X",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "加hp",
+    "buffLayers": 0,
+    "twoRound": true
+  },
+  {
+    "id": "dt_10",
+    "name": "寒音蛇",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_11",
+    "name": "翠顶夫人",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "加hp",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_12",
+    "name": "翠顶夫人",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_13",
+    "name": "权杖-V",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_14",
+    "name": "圣羽翼王",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_15",
+    "name": "寂灭骨龙",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "加hp",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_16",
+    "name": "棋契陛下",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_17",
+    "name": "彩虹独角兽",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_18",
+    "name": "岚鸟冬天的样子",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "dt_19",
+    "name": "瞌睡王",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "tgt_mp6kktwo_nzl",
+    "name": "利灯鱼",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "tgt_mp6kl29i_gb3",
+    "name": "冰钻布鲁斯",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "tgt_mp6kmyii_h8o",
+    "name": "黑猫巫师",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "tgt_mp6ko3n7_e7n",
+    "name": "圆号鱼",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "加hp",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "tgt_mp6kp2fv_u7l",
+    "name": "迷迷箱怪",
+    "hpIv": 10,
+    "defIv": 10,
+    "nature": "加hp",
+    "buffLayers": 0,
+    "twoRound": false
+  },
+  {
+    "id": "tgt_mp6kpqzk_tsa",
+    "name": "棋契陛下",
+    "hpIv": 10,
+    "defIv": 0,
+    "nature": "无",
+    "buffLayers": 6,
+    "twoRound": false
+  }
 ]

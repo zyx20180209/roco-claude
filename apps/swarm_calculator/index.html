@@ -425,13 +425,13 @@ function calcHp(base, iv, nature) {
   return Math.round((Math.round(1.7 * (base + 3 * iv)) + 70) * NATURE_MULT[nature]) + 100;
 }
 
-// PVP 双属性：双弱 3x，双抗 1/3，弱抗抵消 1x，单一关系直接乘
+// PVP 双属性：双弱 3x，双抗 1/4，弱抗抵消 1x，单一关系直接乘
 function getTypeMult(atkType, defAttrs) {
   const vals = defAttrs.map(t => TYPE_MATRIX[atkType]?.[t] ?? 1);
   if (vals.length === 1) return vals[0];
   const [a, b] = vals;
   if (a === 2 && b === 2) return 3;
-  if (a === 0.5 && b === 0.5) return 1/3;
+  if (a === 0.5 && b === 0.5) return 0.25;
   return a * b;
 }
 
@@ -637,7 +637,7 @@ function renderResult() {
 function typeMultBadge(m) {
   if (m === 3) return '<span class="badge badge-weak3">×3 双弱</span>';
   if (m > 1.99) return `<span class="badge badge-weak3">×${m}</span>`;
-  if (Math.abs(m - 1/3) < 0.01) return '<span class="badge badge-resist3">×1/3 双抗</span>';
+  if (Math.abs(m - 0.25) < 0.01) return '<span class="badge badge-resist3">×1/4 双抗</span>';
   if (m < 1) return `<span class="badge badge-resist3">×${m.toFixed(2)}</span>`;
   return '<span class="badge badge-1x">×1</span>';
 }
